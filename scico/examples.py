@@ -67,7 +67,9 @@ def volume_read(path: str, ext: str = "tif") -> np.ndarray:
     return np.dstack(slices)
 
 
-def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pragma: no cover
+def get_epfl_deconv_data(
+    channel: int, path: str, verbose: bool = False
+) -> None:  # pragma: no cover
     """Download example data from EPFL Biomedical Imaging Group.
 
     Download deconvolution problem data from EPFL Biomedical Imaging
@@ -163,7 +165,7 @@ def epfl_deconv_data(
     return y, psf
 
 
-def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no cover
+def get_ucb_diffusercam_data(path: str, verbose: bool = False) -> None:  # pragma: no cover
     """Download data from UC Berkeley Waller Lab diffusercam project.
 
     Download deconvolution problem data from UC Berkeley Waller Lab
@@ -373,7 +375,6 @@ def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     except np.linalg.LinAlgError as e:
         raise ValueError(f"Invalid covariance matrix {sigma}.") from e
     grd = np.stack(np.mgrid[[slice(-(n - 1) / 2, (n + 1) / 2) for n in shape]], axis=-1)
-    sigmax = np.dot(grd, sigmainv)
     xtsigmax = np.sum(grd * np.dot(grd, sigmainv), axis=-1)
     const = ((2.0 * np.pi) ** (-N / 2.0)) * (sigmadet ** (-1.0 / 2.0))
     return const * np.exp(-xtsigmax / 2.0)
@@ -472,7 +473,7 @@ def create_3d_foam_phantom(
     radii = r_std * np.random.randn(N_sphere) + r_mean
 
     im = np.zeros(im_shape) + c_lo
-    for c, r in zip(centers, radii):  # type: ignore
+    for c, r in zip(centers, radii):
         dist = np.sum((x - c) ** 2, axis=-1)
         select = im[dist < r**2]
         if select.size > 0 and np.mean(select - c_lo) < 0.01 * c_hi:
@@ -767,7 +768,7 @@ def spnoise(
     """
 
     if isinstance(img, np.ndarray):
-        spm = np.random.uniform(-1.0, 1.0, img.shape)  # type: ignore
+        spm = np.random.uniform(-1.0, 1.0, img.shape)
         imgn = img.copy()
         imgn[spm < nfrac - 1.0] = nmin
         imgn[spm > 1.0 - nfrac] = nmax
@@ -775,7 +776,7 @@ def spnoise(
         spm, key = random.uniform(shape=img.shape, minval=-1.0, maxval=1.0, seed=0)  # type: ignore
         imgn = img
         imgn = imgn.at[spm < nfrac - 1.0].set(nmin)  # type: ignore
-        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)  # type: ignore
+        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)
     return imgn
 
 

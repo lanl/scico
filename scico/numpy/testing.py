@@ -7,6 +7,8 @@
 
 """Test support functions."""
 
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
 
 from . import _wrappers
@@ -18,3 +20,12 @@ _wrappers.add_attributes(
 
 # clean up
 del np, _wrappers
+
+
+if TYPE_CHECKING:
+    # Most of the public names in this module are injected into its namespace
+    # at import time by the _wrappers calls above, which static analysis cannot
+    # follow. Without this declaration every reference to one of them is
+    # reported as a missing module attribute. Defined only for type checkers, so
+    # attribute errors at run time are unaffected.
+    def __getattr__(name: str) -> Any: ...

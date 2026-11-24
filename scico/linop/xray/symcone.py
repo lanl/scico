@@ -22,7 +22,6 @@ import numpy as np
 import jax.numpy as jnp
 from jax import Array, ShapeDtypeStruct, jit, linear_transpose
 from jax.scipy.ndimage import map_coordinates
-from jax.typing import ArrayLike
 
 from scico.typing import DType, Shape
 
@@ -173,7 +172,7 @@ class SymConeXRayTransform(LinearOperator):
             jit=True,
         )
 
-    def fdk(self, y: ArrayLike, num_angles: int = 360):
+    def fdk(self, y: Array, num_angles: int = 360) -> Array:
         """Reconstruct central slice from projection.
 
         Reconstruct the central slice of the cylindrically symmetric

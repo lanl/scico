@@ -8,6 +8,8 @@ This module contains the Config class which has all the settings that are
 used during the reconstruction of the tomogram.
 """
 
+from typing import Any
+
 import numpy as np
 
 
@@ -22,7 +24,7 @@ class Config:
         pixel_size_v: float,
         source_to_detector_dist: float,
         source_to_object_dist: float,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Note that invalid arguments are neglected without warning.
@@ -83,17 +85,17 @@ class Config:
             np.arange(self.n_pixels_v, dtype=np.float32) - self.n_pixels_v / 2.0
         ) * self.pixel_size_v
 
-    def __repr__(self):
-        str = f"Source-object distance: {self.source_to_object_dist}  "
-        str += f"Source-detector distance: {self.source_to_detector_dist}\n"
-        str += f"Detector pixels: {self.n_pixels_u}, {self.n_pixels_v}  "
-        str += f"Detector size: {self.detector_size_u:.3e}, {self.detector_size_v:.3e}\n"
-        str += f"Pixel size: {self.pixel_size_u:.3e}, {self.pixel_size_v:.3e}\n"
-        str += (
+    def __repr__(self) -> str:
+        out = f"Source-object distance: {self.source_to_object_dist}  "
+        out += f"Source-detector distance: {self.source_to_detector_dist}\n"
+        out += f"Detector pixels: {self.n_pixels_u}, {self.n_pixels_v}  "
+        out += f"Detector size: {self.detector_size_u:.3e}, {self.detector_size_v:.3e}\n"
+        out += f"Pixel size: {self.pixel_size_u:.3e}, {self.pixel_size_v:.3e}\n"
+        out += (
             f"Voxel size: {self.voxel_size_x:.3e}, {self.voxel_size_y:.3e}, "
             f"{self.voxel_size_z:.3e}"
         )
-        return str
+        return out
 
     def with_param(self, **kwargs):
         """Get a clone of the object with changed parameters.

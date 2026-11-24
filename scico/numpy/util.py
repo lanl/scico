@@ -11,16 +11,46 @@ from __future__ import annotations
 
 import collections
 from math import prod
-from typing import Any, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 
 import jax
+from jax import Array
 
 from typing_extensions import TypeGuard
 
-import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
+
+if TYPE_CHECKING:
+    # scico.numpy is this module's parent package, and imports it in turn (both
+    # directly and via _wrappers), so the import in the else branch below is
+    # circular. mypy resolves a circular module reference in value position to a
+    # bare types.ModuleType, whose typeshed __getattr__ yields an Any that mypy
+    # then declines to call, so every snp.<name>(...) in this module was reported
+    # as "Any? not callable". Declaring snp as Any instead costs nothing, because
+    # scico.numpy declares a module-level __getattr__ returning Any for type
+    # checkers, so snp.<name> is already Any everywhere else in the package.
+    #
+    # The names used in annotations are imported directly rather than reached
+    # through snp, so that those annotations keep their real types. BlockArray
+    # cannot be imported at run time here because _blockarray imports this
+    # module, but the annotations are strings under the postponed evaluation
+    # enabled above, so a type checking import is sufficient for them.
+    from ._blockarray import BlockArray
+
+    snp: Any
+else:
+    import scico.numpy as snp
 
 
 def transpose_ntpl_of_list(ntpl: NamedTuple) -> List[NamedTuple]:
@@ -53,7 +83,7 @@ def transpose_list_of_ntpl(ntlist: List[NamedTuple]) -> NamedTuple:
     return cls(*[[ntlist[m][n] for m in range(numentry)] for n in range(nfields)])  # type: ignore
 
 
-def namedtuple_to_array(ntpl: NamedTuple) -> snp.Array:
+def namedtuple_to_array(ntpl: NamedTuple) -> np.ndarray:
     """Convert a namedtuple to an array.
 
     Convert a :func:`collections.namedtuple` object to a
@@ -75,7 +105,7 @@ def namedtuple_to_array(ntpl: NamedTuple) -> snp.Array:
     )
 
 
-def array_to_namedtuple(array: snp.Array) -> NamedTuple:
+def array_to_namedtuple(array: np.ndarray) -> NamedTuple:
     """Convert an array representation of a namedtuple back to a namedtuple.
 
     Convert a :class:`numpy.ndarray` object constructed by
@@ -90,8 +120,13 @@ def array_to_namedtuple(array: snp.Array) -> NamedTuple:
       Named tuple object with the same name and fields as the original
       named tuple object provided to :func:`namedtuple_to_array`.
     """
-    cls = collections.namedtuple(array.item()["name"], array.item()["fields"])  # type: ignore
-    return cls(**array.item()["data"])
+    # The array is 0D and holds a single dict, as constructed by
+    # namedtuple_to_array; retrieve it once rather than on each access. The
+    # suppression is required because mypy can only follow collections.namedtuple
+    # when its arguments are literals.
+    spec: dict = array.item()
+    cls = collections.namedtuple(spec["name"], spec["fields"])  # type: ignore[misc]
+    return cls(**spec["data"])
 
 
 def normalize_axes(
@@ -205,24 +240,41 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
     Raises:
         ValueError: If any element of `idx` is not one of `Ellipsis`,
-        `int`, `slice`, or ``None`` (`np.newaxis`), or if an integer
-        index is out bounds for the corresponding axis length.
+        `int`, `slice`, or ``None`` (`np.newaxis`), if an integer
+        index is out bounds for the corresponding axis length, if `idx`
+        includes more than one `Ellipsis`, or if it indexes more axes
+        than `shape` has.
     """
     if not isinstance(idx, tuple):
         idx = (idx,)
-    idx_shape: List[Optional[int]] = list(shape)
-    offset = 0
-    newaxis = 0
-    for axis, ax_idx in enumerate(idx):
+    # An entry that is None inserts an axis without consuming one, and an
+    # Ellipsis consumes however many are left over, so the position in idx
+    # is not the axis of shape being indexed and has to be tracked
+    # separately. Getting that wrong is invisible for a shape whose axis
+    # lengths repeat, which is why it went unnoticed.
+    if sum(1 for ax_idx in idx if ax_idx is Ellipsis) > 1:
+        raise ValueError("An index may include at most one Ellipsis.")
+    consumed = sum(1 for ax_idx in idx if ax_idx is not None and ax_idx is not Ellipsis)
+    if consumed > len(shape):
+        raise ValueError(f"Index expression {idx} indexes more axes than shape {shape} has.")
+    idx_shape: List[int] = []
+    axis = 0
+    for ax_idx in idx:
         if ax_idx is None:
-            idx_shape.insert(axis, 1)
-            newaxis += 1
-            continue
-        if ax_idx is Ellipsis:
-            offset = len(shape) - len(idx)
-            continue
-        idx_shape[axis + offset + newaxis] = slice_length(shape[axis + offset], ax_idx)
-    return tuple(filter(lambda x: x is not None, idx_shape))  # type: ignore
+            idx_shape.append(1)
+        elif ax_idx is Ellipsis:
+            fill = len(shape) - consumed
+            idx_shape.extend(shape[axis : axis + fill])
+            axis += fill
+        else:
+            length = slice_length(shape[axis], ax_idx)
+            # None means an integer index, which removes the axis entirely
+            if length is not None:
+                idx_shape.append(length)
+            axis += 1
+    # Axes beyond the end of the index expression are unaffected
+    idx_shape.extend(shape[axis:])
+    return tuple(idx_shape)
 
 
 def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
@@ -262,7 +314,7 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     # This compiles each time it gets new arguments because all arguments are static.
     f = jax.jit(get_shape, static_argnums=(0, 1))
 
-    return tuple(t.item() for t in f(shape, idx))  # type: ignore
+    return tuple(t.item() for t in f(shape, idx))
 
 
 def pad_to_divisible(
@@ -300,8 +352,8 @@ def pad_to_divisible(
 
 
 def no_nan_divide(
-    x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
-) -> Union[snp.BlockArray, snp.Array]:
+    x: Union[BlockArray, Array], y: Union[BlockArray, Array]
+) -> Union[BlockArray, Array]:
     """Return `x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
 
     Args:
@@ -336,7 +388,7 @@ def _readable_size(size: int) -> str:
     return f"{val} {ustr}"
 
 
-def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
+def array_info(x: Union[BlockArray, Array]) -> str:
     """Return a string providing information about an array.
 
     Args:
@@ -356,7 +408,7 @@ def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
         array_type = "scico.numpy.BlockArray"
     else:
         raise TypeError("Unrecognized array type {type(x)}.")
-    totalbytes = np.sum(x.nbytes).item()  # type: ignore
+    totalbytes = np.sum(x.nbytes).item()
     return (
         f"""{array_type}
   shape:    {x.shape}
@@ -475,7 +527,7 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
 
 def shape_dtype_rep(
     shape: Union[Shape, BlockShape], dtype: DType
-) -> Union[jax.ShapeDtypeStruct, snp.BlockArray]:
+) -> Union[jax.ShapeDtypeStruct, BlockArray]:
     """Construct a representation of array or blockarray shape and dtype.
 
     Construct a representation of array or block array shape and dtype

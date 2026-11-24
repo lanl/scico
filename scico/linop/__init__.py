@@ -29,7 +29,9 @@ from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
 
 __all__ = [
     "CircularConvolve",
+    "CircularConvolve3D",
     "Convolve",
+    "ConvolveByX",
     "DFT",
     "Diagonal",
     "FiniteDifference",

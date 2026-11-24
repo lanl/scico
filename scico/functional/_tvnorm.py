@@ -8,7 +8,7 @@
 """Total variation norms."""
 
 from functools import partial
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import jax
 
@@ -101,7 +101,9 @@ class TVNorm(Functional):
         )
         return G
 
-    def __call__(self, x: Array) -> float:
+    # The TV norm is defined only on an Array; see the comment on
+    # Functional.__call__ for why the narrowing is suppressed.
+    def __call__(self, x: Array) -> float:  # type: ignore[override]
         """Compute the TV norm of an array.
 
         Args:
@@ -126,7 +128,7 @@ class TVNorm(Functional):
             if self.circular
             # non-circular boundary: shape of input array on non-differenced
             #    axes and one greater for axes that are differenced
-            else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])  # type: ignore
+            else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])
         )
         W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)  # type: ignore
         if self.circular:
@@ -141,12 +143,10 @@ class TVNorm(Functional):
             slce = (
                 snp.s_[:],
                 snp.s_[1],
-            ) + tuple(
-                [snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)]
-            )  # type: ignore
+            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)])
             # Replicate-pad to the right (resulting in a zero after finite differencing)
             # on all axes subject to finite differencing.
-            pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
+            pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]
             P = Pad(
                 input_shape, input_dtype=input_dtype, pad_width=pad_width, mode="edge", jit=True
             )
@@ -205,7 +205,9 @@ class TVNorm(Functional):
         # part of array (when circular==False).
         return (1.0 / K) * CWT(WPv)
 
-    def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
+    def prox(  # type: ignore[override]  # Array only; see Functional.__call__
+        self, v: Array, lam: float = 1.0, **kwargs: Any
+    ) -> Array:
         r"""Approximate scaled proximal operator of the TV norm.
 
         Approximation of the scaled proximal operator of the TV norm,
@@ -376,7 +378,7 @@ class SingleAxisFiniteSum(LinearOperator):
         input_dtype: DType = snp.float32,
         axis: int = -1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -429,7 +431,7 @@ class FiniteSum(VerticalStack):
         input_dtype: DType = snp.float32,
         axes: Optional[Axes] = None,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -471,7 +473,7 @@ class SingleAxisHaarTransform(VerticalStack):
         input_dtype: DType = snp.float32,
         axis: int = -1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -511,7 +513,7 @@ class HaarTransform(VerticalStack):
         input_dtype: DType = snp.float32,
         axes: Optional[Axes] = None,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:

@@ -11,7 +11,8 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Union
+import math
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from jax import Device
 from jax.sharding import Sharding
@@ -105,7 +106,7 @@ class PDHG(Optimizer):
         alpha: float = 1.0,
         x0: Optional[Union[Array, BlockArray]] = None,
         z0: Optional[Union[Array, BlockArray]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`PDHG` object.
 
@@ -149,11 +150,15 @@ class PDHG(Optimizer):
         """
         return snp.all(snp.isfinite(self.x)) and snp.all(snp.isfinite(self.z))
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated."""
-        return self.f.has_eval and self.g.has_eval
+        # bool(): Functional.has_eval is declared Optional[bool], being None until a
+        # subclass sets it, so the conjunction below is Optional[bool] while the base
+        # class declares this method as returning bool. The value is only ever used in
+        # a boolean test, so None and False are already equivalent to every caller.
+        return bool(self.f.has_eval and self.g.has_eval)
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define linearized ADMM-specific iteration statistics fields."""
         itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
@@ -200,7 +205,7 @@ class PDHG(Optimizer):
             Current norm of primal residual.
         """
 
-        return norm(self.x - self.x_old) / self.tau  # type: ignore
+        return norm(self.x - self.x_old) / self.tau
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
@@ -216,7 +221,7 @@ class PDHG(Optimizer):
         """
         return norm(self.z - self.z_old) / self.sigma
 
-    def step(self):
+    def step(self) -> None:
         """Perform a single iteration."""
         self.x_old = self.x
         self.z_old = self.z
@@ -239,7 +244,7 @@ class PDHG(Optimizer):
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
         device: Optional[Union[Device, Sharding]] = None,
-    ):
+    ) -> Tuple[float, float]:
         r"""Estimate `tau` and `sigma` parameters of :class:`PDHG`.
 
         Find values of the `tau` and `sigma` parameters of :class:`PDHG`
@@ -283,6 +288,9 @@ class PDHG(Optimizer):
         else:
             J = jacobian(C, x)
         Cnrm = operator_norm(J, maxiter=maxiter, key=key, device=device)
-        tau = snp.sqrt(factor / ratio) / Cnrm
+        # math.sqrt, not snp.sqrt: the argument is a Python scalar, and snp.sqrt
+        # would return a 0D array, making tau and sigma arrays even though Cnrm
+        # is a float. PDHG declares both parameters as floats.
+        tau = math.sqrt(factor / ratio) / Cnrm
         sigma = ratio * tau
         return (tau, sigma)

@@ -41,12 +41,12 @@ from ray.tune.search.hyperopt import HyperOptSearch
 class _CustomReporter(TuneReporterBase):
     """Custom status reporter for :mod:`ray.tune`."""
 
-    def should_report(self, trials: List[Trial], done: bool = False):
+    def should_report(self, trials: List[Trial], done: bool = False) -> bool:
         """Return boolean indicating whether progress should be reported."""
         # Don't report on final call when done to avoid duplicate final output.
         return not done
 
-    def report(self, trials: List[Trial], done: bool, *sys_info: Dict):
+    def report(self, trials: List[Trial], done: bool, *sys_info: Dict) -> None:
         """Report progress across trials."""
         # Get dict of trials in each state.
         trials_by_state = _get_trials_by_state(trials)
@@ -126,7 +126,7 @@ def run(
     Returns:
         Result of parameter search.
     """
-    kwargs = {}
+    kwargs: Dict[str, Any] = {}
     if hyperopt:
         kwargs.update(
             {
@@ -160,7 +160,7 @@ def run(
         if msg[0:15] != "Total run time:":
             logger_info(msg, *args, **kwargs)
 
-    ray.tune.tune.logger.info = logger_info_filter
+    ray.tune.tune.logger.info = logger_info_filter  # type: ignore[method-assign]
 
     result = ray.tune.run(
         run_or_experiment,
@@ -179,7 +179,7 @@ def run(
     )
 
     # Restore original logger.info
-    ray.tune.tune.logger.info = logger_info
+    ray.tune.tune.logger.info = logger_info  # type: ignore[method-assign]
 
     return result
 
@@ -203,7 +203,7 @@ class Tuner(ray.tune.Tuner):
         hyperopt: bool = True,
         verbose: bool = True,
         storage_path: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -250,7 +250,7 @@ class Tuner(ray.tune.Tuner):
             trainable_with_resources = ray.tune.with_resources(trainable, resources)
 
         tune_config = kwargs.pop("tune_config", None)
-        tune_config_kwargs = {
+        tune_config_kwargs: Dict[str, Any] = {
             "mode": mode,
             "metric": metric,
             "num_samples": num_samples,
@@ -280,11 +280,15 @@ class Tuner(ray.tune.Tuner):
             storage_path = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
         run_config = kwargs.pop("run_config", None)
-        run_config_kwargs = {"name": name, "storage_path": storage_path, "verbose": 0}
+        run_config_kwargs: Dict[str, Any] = {
+            "name": name,
+            "storage_path": storage_path,
+            "verbose": 0,
+        }
         if verbose:
             run_config_kwargs.update({"verbose": 1, "progress_reporter": _CustomReporter()})
         if num_iterations is not None or time_budget is not None:
-            stop_criteria = {}
+            stop_criteria: Dict[str, Any] = {}
             if num_iterations is not None:
                 stop_criteria.update({"training_iteration": num_iterations})
             if time_budget is not None:

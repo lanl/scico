@@ -8,7 +8,7 @@
 """Circular convolution linear operator."""
 
 import math
-from typing import Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -76,6 +76,12 @@ class CircularConvolve(LinearOperator):
     otherwise.
     """
 
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so the attribute is
+    # always a Shape here. Re-declaring it narrowly lets the arithmetic methods
+    # below pass it back to the constructor without a cast at each site.
+    input_shape: Shape
+
     def __init__(
         self,
         h: snp.Array,
@@ -85,7 +91,7 @@ class CircularConvolve(LinearOperator):
         h_is_dft: bool = False,
         h_center: Optional[Union[snp.Array, np.ndarray, Sequence, float, int]] = None,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -152,7 +158,7 @@ class CircularConvolve(LinearOperator):
             jit=jit,
         )
 
-    def _dft_center_shift(self, input_shape) -> np.ndarray:
+    def _dft_center_shift(self, input_shape: Shape) -> np.ndarray:
         """Compute DFT domain shift required for centering.
 
         See doi:10.1109/78.700979 and doi:10.1109/LSP.2012.2191280 for
@@ -174,7 +180,7 @@ class CircularConvolve(LinearOperator):
                         np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
                         np.cos(k * np.pi),
                         np.exp(1j * k * 2 * np.pi * (s - np.arange(s)) / s),
-                    ],  # type: ignore
+                    ],
                 )
                 for k, s in zip(offset, input_shape[-self.ndims :])
             )
@@ -196,7 +202,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: snp.Array) -> snp.Array:  # type: ignore
+    def _adj(self, x: snp.Array) -> snp.Array:
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,
@@ -262,7 +268,7 @@ class CircularConvolve(LinearOperator):
         center: Optional[Shape] = None,
         device: Optional[Union[Device, Sharding]] = None,
         jit: bool = True,
-    ):
+    ) -> "CircularConvolve":
         r"""Construct a CircularConvolve version of a given operator.
 
         Construct a CircularConvolve version of a given operator,

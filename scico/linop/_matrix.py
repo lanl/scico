@@ -17,7 +17,6 @@ from functools import partial, wraps
 import numpy as np
 
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 import scico.numpy as snp
 from scico.operator._operator import Operator
@@ -64,7 +63,7 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: ArrayLike, input_cols: int = 0):
+    def __init__(self, A: snp.Array | np.ndarray, input_cols: int = 0):
         """
         Args:
             A: Dense array. The action of the created
@@ -76,7 +75,7 @@ class MatrixOperator(LinearOperator):
                 (two-dimensional array), this parameter should specify
                 number of columns in the matrix.
         """
-        self.A: snp.Array  #: Dense array implementing this matrix
+        self.A: snp.Array | np.ndarray  #: Dense array implementing this matrix
 
         # Ensure that A is a numpy or jax array.
         if not snp.util.is_arraylike(A):
@@ -145,7 +144,7 @@ class MatrixOperator(LinearOperator):
     def __rsub__(self, other):
         return -self + other
 
-    def __neg__(self):
+    def __neg__(self) -> MatrixOperator:
         return MatrixOperator(-self.A)
 
     # Could write another wrapper for mul, truediv, and rtuediv, but there is
@@ -210,7 +209,7 @@ class MatrixOperator(LinearOperator):
         return self.A[key]
 
     @property
-    def T(self):
+    def T(self) -> MatrixOperator:
         """Transpose of this :class:`.MatrixOperator`.
 
         Return a :class:`.MatrixOperator` corresponding to the transpose
@@ -219,7 +218,7 @@ class MatrixOperator(LinearOperator):
         return MatrixOperator(self.A.T)
 
     @property
-    def H(self):
+    def H(self) -> MatrixOperator:
         """Hermitian (conjugate) transpose of this :class:`.MatrixOperator`.
 
         Return a :class:`.MatrixOperator` corresponding to the Hermitian
@@ -227,7 +226,7 @@ class MatrixOperator(LinearOperator):
         """
         return MatrixOperator(self.A.conj().T)
 
-    def conj(self):
+    def conj(self) -> MatrixOperator:
         """Complex conjugate of this :class:`.MatrixOperator`.
 
         Return a :class:`.MatrixOperator` with complex conjugated
@@ -238,12 +237,12 @@ class MatrixOperator(LinearOperator):
     def adj(self, y):
         return self.A.conj().T @ y
 
-    def to_array(self):
+    def to_array(self) -> np.ndarray:
         """Return a :class:`numpy.ndarray` containing `self.A`."""
         return np.array(self.A)
 
     @property
-    def gram_op(self):
+    def gram_op(self) -> MatrixOperator:
         """Gram operator of this :class:`.MatrixOperator`.
 
         Return a new :class:`.LinearOperator` `G` such that

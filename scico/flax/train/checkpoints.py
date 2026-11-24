@@ -81,7 +81,7 @@ def checkpoint_restore(
     return state
 
 
-def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, Path]):
+def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, Path]) -> None:
     """Store model, model configuration, and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax

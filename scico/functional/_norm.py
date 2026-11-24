@@ -8,7 +8,7 @@
 """Functionals that are norms."""
 
 from functools import partial
-from typing import Optional, Tuple, Union
+from typing import Any, Tuple, Union
 
 from jax import jit, lax
 
@@ -37,7 +37,9 @@ class L0Norm(Functional):
 
     @staticmethod
     @jit
-    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
+    def prox(
+        v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate scaled proximal operator of :math:`\ell_0` norm.
 
         Evaluate scaled proximal operator of :math:`\ell_0` norm using
@@ -84,7 +86,7 @@ class L1Norm(Functional):
 
     @staticmethod
     @jit
-    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Array:
+    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any) -> Array:
         r"""Evaluate scaled proximal operator of :math:`\ell_1` norm.
 
         Evaluate scaled proximal operator of :math:`\ell_1` norm using
@@ -140,7 +142,9 @@ class SquaredL2Norm(Functional):
 
     @staticmethod
     @jit
-    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
+    def prox(
+        v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of squared :math:`\ell_2` norm.
 
         Evaluate proximal operator of squared :math:`\ell_2` norm using
@@ -178,7 +182,9 @@ class L2Norm(Functional):
 
     @staticmethod
     @jit
-    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
+    def prox(
+        v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_2` norm.
 
         Evaluate proximal operator of :math:`\ell_2` norm using
@@ -241,7 +247,7 @@ class L21Norm(Functional):
     @staticmethod
     @partial(jit, static_argnames=("axis", "keepdims"))
     def _l2norm(
-        x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: Optional[bool] = False
+        x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: bool = False
     ) -> Union[Array, BlockArray]:
         r"""Return the :math:`\ell_2` norm of an array."""
         return snp.sqrt((snp.abs(x) ** 2).sum(axis=axis, keepdims=keepdims))
@@ -266,7 +272,7 @@ class L21Norm(Functional):
         return new_length * direction
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the :math:`\ell_{2,1}` norm.
 
@@ -378,7 +384,7 @@ class L1MinusL2Norm(Functional):
         )
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Proximal operator of difference of :math:`\ell_1` and :math:`\ell_2` norms.
 
@@ -490,7 +496,7 @@ class HuberNorm(Functional):
         return (1.0 - ((delta * lam) / den)) * v
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the Huber function.
 
@@ -546,7 +552,9 @@ class NuclearNorm(Functional):
 
     @staticmethod
     @jit
-    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
+    def prox(
+        v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the nuclear norm.
 
         Evaluate proximal operator of the nuclear norm

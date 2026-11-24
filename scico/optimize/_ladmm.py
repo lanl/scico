@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -89,7 +89,7 @@ class LinearizedADMM(Optimizer):
         mu: float,
         nu: float,
         x0: Optional[Union[Array, BlockArray]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`LinearizedADMM` object.
 
@@ -130,11 +130,15 @@ class LinearizedADMM(Optimizer):
             and snp.all(snp.isfinite(self.u))
         )
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated."""
-        return self.f.has_eval and self.g.has_eval
+        # bool(): Functional.has_eval is declared Optional[bool], being None until a
+        # subclass sets it, so the conjunction below is Optional[bool] while the base
+        # class declares this method as returning bool. The value is only ever used in
+        # a boolean test, so None and False are already equivalent to every caller.
+        return bool(self.f.has_eval and self.g.has_eval)
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define linearized ADMM-specific iteration statistics fields."""
         itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
@@ -248,7 +252,7 @@ class LinearizedADMM(Optimizer):
         u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype, device=self.z.sharding)
         return u
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single linearized ADMM iteration.
 
         The primary variable :math:`\mb{x}` is updated by computing

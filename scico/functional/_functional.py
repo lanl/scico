@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import scico
 from scico import numpy as snp
@@ -35,13 +35,13 @@ class Functional:
     #: This attribute must be overridden and set to True or False in any derived classes.
     has_prox: Optional[bool] = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._grad = scico.grad(self.__call__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"""{self.__module__}.{self.__class__.__qualname__}"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__() + f"""\n  has_eval: {self.has_eval}\n  has_prox: {self.has_prox}\n"""
 
     def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
@@ -57,6 +57,24 @@ class Functional:
             return FunctionalSum(self, other)
         return NotImplemented
 
+    # The Union[Array, BlockArray] annotated on the array arguments of this class
+    # and its subclasses is the disjunction over all functionals, not a claim that
+    # any one functional accepts both: a given functional is defined on one or the
+    # other. Subclasses that are defined on only one therefore narrow the argument
+    # type, which is a Liskov violation that mypy reports as [override]. Those
+    # reports are suppressed individually, with a comment at each site recording
+    # what the class is defined on.
+    #
+    # Expressing this properly needs Functional to be generic in its array type,
+    # with prox typed (ArrayT) -> ArrayT. Because the parameter then appears in both
+    # argument and return position it must be invariant, so Functional[Array] is not
+    # assignable where Functional[Union[Array, BlockArray]] is expected, and the
+    # parameter has to be threaded through Loss and every class that accepts a
+    # functional (ADMM, PGM, PDHG, the ProximalADMM variants, ProximalAverage,
+    # TVNorm). Those would have to accept Functional[Any] regardless, because an
+    # ADMM g_list is routinely heterogeneous in array type: each g_i is applied to
+    # C_i(x), and the C_i need not agree. The type parameter would therefore be
+    # discarded at the public API boundary, which is where it would have to pay off.
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Evaluate this functional at point :math:`\mb{x}`.
 
@@ -70,7 +88,7 @@ class Functional:
         raise NotImplementedError(f"Functional {type(self)} cannot be evaluated.")
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of functional.
 
@@ -100,7 +118,7 @@ class Functional:
         raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
 
     def conj_prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of convex conjugate of functional.
 
@@ -127,7 +145,7 @@ class Functional:
         """
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
-    def grad(self, x: Union[Array, BlockArray]):
+    def grad(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         r"""Evaluate the gradient of this functional at :math:`\mb{x}`.
 
         Args:
@@ -149,7 +167,7 @@ class ScaledFunctional(Functional):
         self.has_prox = functional.has_prox
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"""{Functional.__repr__(self)}"""
             f"""  functional: {Functional.__str__(self.functional)}\n"""
@@ -165,7 +183,7 @@ class ScaledFunctional(Functional):
         return NotImplemented
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Evaluate the scaled proximal operator of the scaled functional.
 
@@ -225,7 +243,7 @@ class SeparableFunctional(Functional):
         self.has_prox: bool = all(fi.has_prox for fi in functional_list)
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + "  components: "
@@ -233,7 +251,10 @@ class SeparableFunctional(Functional):
             + "\n"
         )
 
-    def __call__(self, x: BlockArray) -> float:
+    # A SeparableFunctional is defined only on a BlockArray, as the class docstring
+    # states; see the comment on Functional.__call__ for why the narrowing is
+    # suppressed rather than expressed in the type system.
+    def __call__(self, x: BlockArray) -> float:  # type: ignore[override]
         if len(x.shape) == len(self.functional_list):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
         raise ValueError(
@@ -241,7 +262,9 @@ class SeparableFunctional(Functional):
             f"{len(self.functional_list)}, do not match."
         )
 
-    def prox(self, v: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
+    def prox(  # type: ignore[override]  # BlockArray only; see Functional.__call__
+        self, v: BlockArray, lam: float = 1.0, **kwargs: Any
+    ) -> BlockArray:
         r"""Evaluate proximal operator of the separable functional.
 
         Evaluate proximal operator of the separable functional (see
@@ -306,17 +329,17 @@ class ComposedFunctional(Functional):
         self.has_prox = functional.has_prox
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + f"""  composition of: {self.functional.__str__()} and {self.linop.__str__()}\n"""
         )
 
-    def __call__(self, x: BlockArray) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.functional(self.linop(x))
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of a composed functional.
 
@@ -352,7 +375,7 @@ class FunctionalSum(Functional):
         self.has_prox = False
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + f"""  sum of functionals: {Functional.__str__(self.functional1)} and """
@@ -373,6 +396,6 @@ class ZeroFunctional(Functional):
         return 0.0
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         return v

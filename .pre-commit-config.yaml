@@ -47,3 +47,14 @@ repos:
       types: [python]
       exclude: ^(scico/test/|examples|docs)
       args: ['--score=n', '--disable=all', '--enable=missing-docstring,broad-exception-raised']
+    - id: flake8
+      name: flake8
+      entry: flake8
+      description: 'Flake8 restricted to the pyflakes checks, which find real defects
+        (undefined names, names missing from __all__, unused imports and variables)
+        rather than formatting, which black and isort already govern'
+      language: python
+      language_version: python3
+      types: [python]
+      exclude: ^(scico/test/|examples|docs)
+      args: ['--select=F']

@@ -16,7 +16,6 @@ import jax.scipy.spatial.transform as jsst
 from jax import Array
 from jax.image import ResizeMethod, scale_and_translate
 from jax.scipy.ndimage import map_coordinates
-from jax.typing import ArrayLike
 
 try:
     from .astra import XRayTransform2D
@@ -30,7 +29,7 @@ except ModuleNotFoundError as e:
 import scipy.spatial.transform as sst
 
 
-def image_centroid(v: ArrayLike, center_offset: bool = False) -> Tuple[float, ...]:
+def image_centroid(v: Array, center_offset: bool = False) -> Tuple[float, ...]:
     """Compute the centroid of an image.
 
     Compute the centroid of an image or higher-dimensional array.
@@ -59,7 +58,7 @@ def image_centroid(v: ArrayLike, center_offset: bool = False) -> Tuple[float, ..
 
 
 def center_image(
-    v: ArrayLike,
+    v: Array,
     axes: Optional[Tuple[int, ...]] = None,
     method: ResizeMethod = ResizeMethod.LANCZOS3,
 ) -> Array:
@@ -87,12 +86,12 @@ def center_image(
 
 
 def rotate_volume(
-    vol: ArrayLike,
+    vol: Array,
     rot: jsst.Rotation,
-    x: Optional[ArrayLike] = None,
-    y: Optional[ArrayLike] = None,
-    z: Optional[ArrayLike] = None,
-    center: Optional[ArrayLike] = None,
+    x: Optional[Array] = None,
+    y: Optional[Array] = None,
+    z: Optional[Array] = None,
+    center: Optional[Array] = None,
 ) -> Array:
     """Rotate a 3D array.
 
@@ -125,12 +124,16 @@ def rotate_volume(
     gx, gy, gz = jnp.meshgrid(x - center[0], y - center[1], z - center[2], indexing="ij")
     crd = jnp.stack((gx.ravel(), gy.ravel(), gz.ravel()))
     rot_crd = rot.as_matrix() @ crd + center[:, jnp.newaxis]  # faster than rot.apply(crd.T)
-    rot_vol = map_coordinates(vol, rot_crd.reshape((3,) + shape), order=1)
+    # map_coordinates takes a sequence of coordinate arrays, one per axis, rather
+    # than a single array with the axes stacked on the leading dimension. It
+    # iterates whatever it is given, so the two are equivalent, as verified, but
+    # only the sequence matches the declared signature.
+    rot_vol = map_coordinates(vol, list(rot_crd.reshape((3,) + shape)), order=1)
     return rot_vol
 
 
 def image_alignment_rotation(
-    img: ArrayLike, max_angle: float = 2.5, angle_step: float = 0.025, center_factor: float = 5e-3
+    img: Array, max_angle: float = 2.5, angle_step: float = 0.025, center_factor: float = 5e-3
 ) -> float:
     r"""Estimate an image alignment rotation.
 
@@ -204,7 +207,7 @@ def image_alignment_rotation(
 
 
 def volume_alignment_rotation(
-    vol: ArrayLike,
+    vol: Array,
     xslice: Optional[int] = None,
     yslice: Optional[int] = None,
     max_angle: float = 2.5,

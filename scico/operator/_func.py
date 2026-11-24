@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None) -> Any:
     """Make an :class:`.Operator` from a function.
 
     Example
@@ -67,7 +67,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         """
 
     def __init__(
-        self,
+        self: Any,
         input_shape: Union[Shape, BlockShape],
         *args: Any,
         input_dtype: DType = snp.float32,
@@ -75,16 +75,22 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         output_dtype: Optional[DType] = None,
         jit: bool = True,
         **kwargs: Any,
-    ):
+    ) -> None:
         self._eval = lambda x: f(x, *args, **kwargs)
         super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (Operator,), {"__init__": __init__})
-    __class__ = OpClass  # needed for super() to work
+    __class__ = OpClass  # needed for super() to work  # noqa: F841
 
     OpClass.__doc__ = f"Operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore
 
+    # Any, not Type[Operator]: the returned class is built here, and its
+    # __init__ forwards keyword arguments to f and records them as self.kwargs,
+    # as the example above shows for axis. Type[Operator] describes the
+    # hierarchy correctly but gives the class Operator's own __init__, so
+    # every call passing one of those keywords is then reported as an error, and
+    # a synthesized signature cannot be expressed as a static type.
     return OpClass
 
 

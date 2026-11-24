@@ -37,7 +37,7 @@ class PGMStepSize:
            attached.
     """
 
-    def internal_init(self, pgm: sop.PGM):
+    def internal_init(self, pgm: sop.PGM) -> None:
         """Second stage initializer to be called by :meth:`.PGM.__init__`.
 
         Args:
@@ -86,10 +86,12 @@ class BBStepSize(PGMStepSize):
            attached.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a :class:`BBStepSize` object."""
-        self.xprev = None
-        self.gradprev = None
+        # Optional: both are None until the first update, which is how that
+        # iteration is detected, and hold the previous iterate thereafter.
+        self.xprev: Optional[Union[Array, BlockArray]] = None
+        self.gradprev: Optional[Union[Array, BlockArray]] = None
 
     def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.
@@ -102,7 +104,10 @@ class BBStepSize(PGMStepSize):
             Updated reciprocal of the step size.
         """
 
-        if self.xprev is None:
+        # xprev and gradprev are always assigned together, here and at the end
+        # of this method, so testing both narrows both. Testing xprev alone left
+        # gradprev optional in the else branch, which subtracts from it.
+        if self.xprev is None or self.gradprev is None:
             # Solution and gradient of previous iterate are required.
             # For first iteration these variables are stored and current estimate is returned.
             self.xprev = v
@@ -173,8 +178,11 @@ class AdaptiveBBStepSize(PGMStepSize):
             kappa : Threshold for step size selection :math:`\kappa`.
         """
         self.kappa: float = kappa
-        self.xprev: Union[Array, BlockArray] = None
-        self.gradprev: Union[Array, BlockArray] = None
+        # Optional, as in BBStepSize: the declared type did not admit the None
+        # it is given here, which went unreported only because the body of this
+        # initializer was unchecked while it carried no return annotation.
+        self.xprev: Optional[Union[Array, BlockArray]] = None
+        self.gradprev: Optional[Union[Array, BlockArray]] = None
         self.Lbb1prev: Optional[float] = None
         self.Lbb2prev: Optional[float] = None
 
@@ -189,7 +197,10 @@ class AdaptiveBBStepSize(PGMStepSize):
             Updated reciprocal of the step size.
         """
 
-        if self.xprev is None:
+        # xprev and gradprev are always assigned together, here and at the end
+        # of this method, so testing both narrows both. Testing xprev alone left
+        # gradprev optional in the else branch, which subtracts from it.
+        if self.xprev is None or self.gradprev is None:
             # Solution and gradient of previous iterate are required.
             # For first iteration these variables are stored and current estimate is returned.
             self.xprev = v
@@ -328,9 +339,11 @@ class RobustLineSearchStepSize(LineSearchStepSize):
         self.gamma_d: float = gamma_d
         self.Tk: float = 0.0
         # State needed for computing auxiliary extrapolation sequence in robust line search.
-        self.Zrb: Union[Array, BlockArray] = None
+        # Optional, as elsewhere in this module: both are None until the first
+        # update, and the declared type did not admit the None assigned here.
+        self.Zrb: Optional[Union[Array, BlockArray]] = None
         #: Current estimate of solution in robust line search.
-        self.Z: Union[Array, BlockArray] = None
+        self.Z: Optional[Union[Array, BlockArray]] = None
 
     def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.

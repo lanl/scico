@@ -8,7 +8,7 @@
 """Generation and loading of data used in Flax example scripts."""
 
 import os
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, NoReturn, Optional, Tuple, Union
 
 import numpy as np
 
@@ -573,7 +573,7 @@ def check_img_data_requirements(
     return False
 
 
-def print_input_path(path_display: str):  # pragma: no cover
+def print_input_path(path_display: str) -> None:  # pragma: no cover
     """Display path from where data is being loaded.
 
     Args:
@@ -582,7 +582,7 @@ def print_input_path(path_display: str):  # pragma: no cover
     print(f"Data read from path: {path_display}")
 
 
-def print_output_path(path_display: str):  # pragma: no cover
+def print_output_path(path_display: str) -> None:  # pragma: no cover
     """Display path where data is being stored.
 
     Args:
@@ -591,7 +591,7 @@ def print_output_path(path_display: str):  # pragma: no cover
     print(f"Storing data in path: {path_display}")
 
 
-def print_data_range(idstring: str, data: Array):  # pragma: no cover
+def print_data_range(idstring: str, data: Array) -> None:  # pragma: no cover
     """Display min and max values of given data array.
 
     Args:
@@ -601,7 +601,7 @@ def print_data_range(idstring: str, data: Array):  # pragma: no cover
     print(f"Data range --{idstring}--  Min: {data.min():>5.2f}  " f"Max: {data.max():>5.2f}")
 
 
-def print_data_size(idstring: str, size: int):  # pragma: no cover
+def print_data_size(idstring: str, size: int) -> None:  # pragma: no cover
     """Display integer given.
 
     Args:
@@ -613,7 +613,7 @@ def print_data_size(idstring: str, size: int):  # pragma: no cover
 
 def print_info(
     iomode: str, path_display: str, train_in: Array, train_out: Array, test_size: int
-):  # pragma: no cover
+) -> None:  # pragma: no cover
     """Display information related to data input/output.
 
     Args:
@@ -634,7 +634,7 @@ def print_info(
     print_data_range(" labels ", train_out)
 
 
-def print_data_warning(idstring: str, requested: int, available: int):  # pragma: no cover
+def print_data_warning(idstring: str, requested: int, available: int) -> None:  # pragma: no cover
     """Display warning related to data size demands not satisfied.
 
     Args:
@@ -650,7 +650,7 @@ def print_data_warning(idstring: str, requested: int, available: int):  # pragma
 
 def runtime_error_scalar(
     type: str, idstring: str, requested: Union[int, float], available: Union[int, float]
-):
+) -> NoReturn:
     """Raise run time error related to unsatisfied scalar parameter request.
 
     Raise run time error related to scalar parameter request not satisfied
@@ -669,7 +669,7 @@ def runtime_error_scalar(
     )
 
 
-def runtime_error_array(type: str, idstring: str, maxdiff: float):
+def runtime_error_array(type: str, idstring: str, maxdiff: float) -> NoReturn:
     """Raise run time error related to unsatisfied array parameter request.
 
     Raise run time error related to array parameter request not satisfied

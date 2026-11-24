@@ -25,10 +25,11 @@ logging.getLogger("jax._src.xla_bridge").addFilter(  # jax 0.4.8 and later
 import jax
 from jax import custom_jvp, custom_vjp, hessian, jacfwd, jvp, linearize, vjp
 
-import jaxlib
-
-from . import numpy
-from ._core import *
+# scico.numpy is imported so that it is accessible as an attribute of scico, and the
+# star import from scico._core populates names re-exported via __all__ below; neither
+# is referenced here, so both are invisible to static analysis.
+from . import numpy  # noqa: F401
+from ._core import *  # noqa: F401, F403
 from ._core import __all__ as _core_all
 
 # See https://github.com/google/jax/issues/19444

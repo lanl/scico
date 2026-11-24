@@ -138,7 +138,7 @@ def _trace_arg_repr(val: Any) -> str:
             return f"[{type(val).__name__}]"
 
 
-def register_variable(var: Any, name: str):
+def register_variable(var: Any, name: str) -> None:
     """Register a variable name for call tracing.
 
     Any hashable object (or numpy array, with the memory address
@@ -156,7 +156,7 @@ def register_variable(var: Any, name: str):
     call_trace.instance_hash[hash] = name  # type: ignore
 
 
-def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
+def _call_wrapped_function(func: Callable, *args: Any, **kwargs: Any) -> Any:
     """Call a wrapped function within the wrapper.
 
     Handle different call mechanisms required for static and class
@@ -178,7 +178,7 @@ def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
         # somewhat heuristic, and may fail, but there is no obvious
         # mechanism for reliably determining how the method was called in
         # the calling scope.
-        if inspect._findclass(func) == type(args[0]):  # type: ignore
+        if inspect._findclass(func) is type(args[0]):  # type: ignore
             call_args = args[1:]
         else:
             call_args = args
@@ -214,10 +214,10 @@ def call_trace(func: Callable) -> Callable:
             and isinstance(args[0], method_class)
         ):  # first argument is self for a method call
             arg_idx = 1  # skip self in handling arguments
-            if args[0].__hash__() in call_trace.instance_hash:
+            if args[0].__hash__() in call_trace.instance_hash:  # type: ignore
                 # self object registered using register_variable
                 name = (
-                    f"{clr_rvar}{call_trace.instance_hash[args[0].__hash__()]}."
+                    f"{clr_rvar}{call_trace.instance_hash[args[0].__hash__()]}."  # type: ignore
                     f"{clr_func}{func.__name__}"
                 )
             else:
@@ -238,18 +238,18 @@ def call_trace(func: Callable) -> Callable:
         kwargs_repr = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
         args_str = clr_args + ", ".join(args_repr + kwargs_repr) + clr_main
         print(
-            f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}"
+            f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}"  # type: ignore
             f"({args_str}{clr_func}){clr_reset}",
             file=sys.stderr,
         )
         # call wrapped function
-        call_trace.trace_level += 1
+        call_trace.trace_level += 1  # type: ignore
         ret = _call_wrapped_function(func, *args, **kwargs)
-        call_trace.trace_level -= 1
+        call_trace.trace_level -= 1  # type: ignore
         # print representation of return value
-        if ret is not None and call_trace.show_return_value:
+        if ret is not None and call_trace.show_return_value:  # type: ignore
             print(
-                f"{clr_main}<< {' ' * 2 * call_trace.trace_level}{clr_retv}"
+                f"{clr_main}<< {' ' * 2 * call_trace.trace_level}{clr_retv}"  # type: ignore
                 f"{_trace_arg_repr(ret)}{clr_reset}",
                 file=sys.stderr,
             )
@@ -398,7 +398,7 @@ def apply_decorator(
     for name, cls in inspect.getmembers(
         module, lambda obj: inspect.isclass(obj) and _in_module(module, obj)
     ):
-        qualname = cls.__module__ + "." + cls.__qualname__  # type: ignore
+        qualname = cls.__module__ + "." + cls.__qualname__
         if verbose:
             print(f"{indent}Class: {qualname}")
 
@@ -408,7 +408,7 @@ def apply_decorator(
         ):
             if name in skip:
                 continue
-            qualname = func.__module__ + "." + func.__qualname__  # type: ignore
+            qualname = func.__module__ + "." + func.__qualname__
             if not seen[qualname]:  # avoid multiple applications of decorator
                 # Can't use cls returned by inspect.getmembers because it uses plain
                 # getattr internally, which interferes with identification of static
@@ -441,7 +441,7 @@ def apply_decorator(
     return seen
 
 
-def trace_scico_calls(verbose: bool = False):
+def trace_scico_calls(verbose: bool = False) -> None:
     """Enable tracing of calls to all significant scico functions/methods.
 
     Enable tracing of calls to all significant scico functions and

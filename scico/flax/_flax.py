@@ -40,7 +40,7 @@ def load_variables(filename: str) -> PyTree:
     return var_in
 
 
-def save_variables(variables: PyTree, filename: str):
+def save_variables(variables: PyTree, filename: str) -> None:
     """Save trained model weights.
 
     Args:

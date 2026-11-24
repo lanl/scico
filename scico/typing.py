@@ -19,29 +19,21 @@ except ImportError:
     EllipsisType: TypeAlias = Any  # type: ignore
 
 
-import jax.numpy as jnp
 from jax import Array
+from jax.typing import DTypeLike
 
 PRNGKey: TypeAlias = Array
 """A key for jax random number generators (see :mod:`jax.random`)."""
 
-DType: TypeAlias = Union[
-    jnp.int8,
-    jnp.int16,
-    jnp.int32,
-    jnp.int64,
-    jnp.uint8,
-    jnp.uint16,
-    jnp.uint32,
-    jnp.uint64,
-    jnp.float16,
-    jnp.float32,
-    jnp.float64,
-    jnp.complex64,
-    jnp.complex128,
-    bool,
-]
-"""A jax dtype."""
+# The jnp scalar types (jnp.float32 and the like) are instances of
+# jax._src.numpy.scalar_types._ScalarMeta rather than types, so a union of
+# them is not a valid type annotation: mypy rejects each component with
+# "Variable "jax.numpy.float32" is not valid as a type" whenever the jax
+# types are visible to it. The jax alias covers the same scalar types, as
+# well as the strings, numpy dtypes, and numpy scalar types that the
+# annotated parameters equally accept.
+DType: TypeAlias = DTypeLike
+"""An entity suitable for specifying the dtype of a numpy or jax array."""
 
 Shape: TypeAlias = Tuple[int, ...]
 """A shape of a numpy or jax array."""
@@ -52,9 +44,10 @@ BlockShape: TypeAlias = Tuple[Tuple[int, ...], ...]
 Axes: TypeAlias = Union[int, Tuple[int, ...], List[int]]
 """Specification of one or more array axes."""
 
-AxisIndex: TypeAlias = Union[slice, EllipsisType, int]
+AxisIndex: TypeAlias = Union[slice, EllipsisType, int, None]
 """An entity suitable for indexing/slicing of a single array axis; either
-a slice object, Ellipsis, or int."""
+a slice object, Ellipsis, int, or ``None`` (:data:`numpy.newaxis`, which
+inserts a new axis of length one)."""
 
 ArrayIndex: TypeAlias = Union[AxisIndex, Tuple[AxisIndex, ...]]
 """An entity suitable for indexing/slicing of multi-dimentional arrays."""

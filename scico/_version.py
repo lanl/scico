@@ -41,7 +41,7 @@ def variable_assign_value(path: str, var: str) -> Any:
         try:
             # See https://stackoverflow.com/a/30471662
             value_obj = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value  # type: ignore
-            value = value_obj.value  # type: ignore
+            value = value_obj.value
         except StopIteration:
             raise RuntimeError(f"Could not find initialization of variable {var}")
     return value

@@ -8,8 +8,9 @@ omit =
     scico/linop/xray/_axitom/*.py
 
 [report]
-# Regexes for lines to exclude from consideration
-exclude_lines =
-    # Have to re-enable the standard pragma
-    pragma: no cover
+# Regexes for lines to exclude from consideration, in addition to the
+# defaults, which are the standard pragma, stub bodies consisting of
+# "...", and "if TYPE_CHECKING:" blocks. Note that exclude_also adds to
+# those defaults, whereas exclude_lines would replace them.
+exclude_also =
     def __repr__

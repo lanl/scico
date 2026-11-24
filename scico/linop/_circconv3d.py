@@ -117,7 +117,7 @@ class CircularConvolve3D(CircularConvolve):
             hx = hx.real
         return hx
 
-    def _adj(self, x: snp.Array) -> snp.Array:  # type: ignore
+    def _adj(self, x: snp.Array) -> snp.Array:
         x_dft = pfft3d(x)
         H_adj_x = pifft3d(
             snp.conj(self.h_dft) * x_dft,

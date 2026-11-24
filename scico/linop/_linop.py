@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, cast, overload
 
 import numpy as np
 
@@ -125,8 +125,8 @@ class LinearOperator(Operator):
 
     def __init__(
         self,
-        input_shape: Union[Shape, BlockShape],
-        output_shape: Optional[Union[Shape, BlockShape]] = None,
+        input_shape: Union[int, Shape, BlockShape],
+        output_shape: Optional[Union[int, Shape, BlockShape]] = None,
         eval_fn: Optional[Callable] = None,
         adj_fn: Optional[Callable] = None,
         input_dtype: DType = np.float32,
@@ -135,10 +135,14 @@ class LinearOperator(Operator):
     ):
         r"""
         Args:
-            input_shape: Shape of input array.
+            input_shape: Shape of input array. A bare integer is
+                accepted as a shorthand for a one-dimensional shape, and
+                is recorded in the `input_shape` attribute as a
+                length-one tuple.
             output_shape: Shape of output array. Defaults to ``None``.
                 If ``None``, `output_shape` is determined by evaluating
-                `self.__call__` on an input array of zeros.
+                `self.__call__` on an input array of zeros. A bare
+                integer is accepted, as for `input_shape`.
             eval_fn: Function used in evaluating this
                 :class:`LinearOperator`. Defaults to ``None``. If
                 ``None``, then `self.__call__` must be defined in any
@@ -184,18 +188,18 @@ class LinearOperator(Operator):
         if jit:
             self.jit()
 
-    def _set_adjoint(self):
+    def _set_adjoint(self) -> None:
         """Automatically create adjoint method."""
         adj_fun = linear_adjoint(
             self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=self.input_dtype)
         )
         self._adj = lambda x: adj_fun(x)[0]
 
-    def _set_gram(self):
+    def _set_gram(self) -> None:
         """Automatically create gram method."""
         self._gram = lambda x: self.adj(self(x))
 
-    def jit(self):
+    def jit(self) -> None:
         """Replace the private functions :meth:`._eval`, :meth:`_adj`, :meth:`._gram`
         with jitted versions.
         """
@@ -206,8 +210,12 @@ class LinearOperator(Operator):
             self._set_gram()
 
         self._eval = jax.jit(self._eval)
-        self._adj = jax.jit(self._adj)
-        self._gram = jax.jit(self._gram)
+        # _set_adjoint and _set_gram, called just above when the corresponding
+        # attribute is still None, each assign it unconditionally, so neither is
+        # None by this point. mypy cannot see that through the method call, and
+        # both attributes are declared Optional because they are None until set.
+        self._adj = jax.jit(cast(Callable, self._adj))
+        self._gram = jax.jit(cast(Callable, self._gram))
 
     @_wrap_add_sub
     def __add__(self, other):
@@ -257,6 +265,15 @@ class LinearOperator(Operator):
             output_dtype=result_type(self.output_dtype, other),
         )
 
+    def __neg__(self) -> LinearOperator:
+        # Operator.__neg__ returns -1.0 * self and is annotated as returning an
+        # Operator, because that is all it can promise for a nonlinear operator.
+        # Scaling a LinearOperator yields a LinearOperator, verified for Identity,
+        # Diagonal, MatrixOperator, Convolve and FiniteDifference, so this override
+        # records the narrower return type. Narrowing a return type in an override
+        # is covariant and therefore sound.
+        return cast(LinearOperator, super().__neg__())
+
     def __matmul__(self, other):
         # self @ other
         return self(other)
@@ -276,9 +293,27 @@ class LinearOperator(Operator):
             f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}."
         )
 
-    def __call__(
-        self, x: Union[LinearOperator, Array, BlockArray]
-    ) -> Union[LinearOperator, Array, BlockArray]:
+    # As for Operator.__call__, the return type depends on the argument type, with
+    # the additional case that composition with a LinearOperator yields a
+    # LinearOperator rather than a plain Operator. The implementation signature
+    # admits Operator because the fall-through to Operator.__call__ handles it.
+    #
+    # The override is sound: every argument the supertype accepts is accepted here
+    # too, so nothing is narrowed, and the extra overload only refines the return
+    # type for an argument that is already an Operator, which is safe because
+    # LinearOperator is a subtype of Operator and return types are covariant. mypy
+    # compares overload lists pairwise and cannot express that, so it reports the
+    # override as incompatible.
+    @overload  # type: ignore[override]
+    def __call__(self, x: LinearOperator) -> LinearOperator: ...
+
+    @overload
+    def __call__(self, x: Operator) -> Operator: ...
+
+    @overload
+    def __call__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]: ...
+
+    def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`LinearOperator` at the point :math:`\mb{x}`.
 
         Args:

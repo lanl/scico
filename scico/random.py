@@ -173,4 +173,4 @@ def randn(
            - **x** : (:class:`jax.Array`):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
-    return normal(shape, dtype, key, seed)  # type: ignore
+    return normal(shape, dtype, key, seed)  # type: ignore  # noqa: F821

@@ -17,10 +17,10 @@ from scico.typing import ArrayIndex, BlockShape, DType, Shape
 
 from ._linop import LinearOperator
 
-__all__ = ["operator_from_function", "Tranpose", "Sum", "Crop", "Pad", "Reshape", "Slice"]
+__all__ = ["linop_from_function", "Transpose", "Sum", "Crop", "Pad", "Reshape", "Slice"]
 
 
-def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None) -> Any:
     """Make a :class:`LinearOperator` from a function.
 
     Example
@@ -66,7 +66,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         """
 
     def __init__(
-        self,
+        self: Any,
         input_shape: Union[Shape, BlockShape],
         *args: Any,
         input_dtype: DType = snp.float32,
@@ -74,17 +74,23 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         output_dtype: Optional[DType] = None,
         jit: bool = True,
         **kwargs: Any,
-    ):
+    ) -> None:
         self._eval = lambda x: f(x, *args, **kwargs)
         self.kwargs = kwargs
         super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
-    __class__ = OpClass  # needed for super() to work
+    __class__ = OpClass  # needed for super() to work  # noqa: F841
 
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore
 
+    # Any, not Type[LinearOperator]: the returned class is built here, and its
+    # __init__ forwards keyword arguments to f and records them as self.kwargs,
+    # as the example above shows for axis. Type[LinearOperator] describes the
+    # hierarchy correctly but gives the class LinearOperator's own __init__, so
+    # every call passing one of those keywords is then reported as an error, and
+    # a synthesized signature cannot be expressed as a static type.
     return OpClass
 
 
@@ -103,7 +109,7 @@ class Crop(LinearOperator):
         input_shape: Shape,
         input_dtype: DType = snp.float32,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -147,7 +153,7 @@ class Slice(LinearOperator):
         input_shape: Union[Shape, BlockShape],
         input_dtype: DType = snp.float32,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         This operator may be applied to either a :class:`jax.Array` or a

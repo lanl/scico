@@ -70,7 +70,7 @@ def _npzread(filename: str, array: str, path: Optional[str] = None) -> np.ndarra
     return npz[array]
 
 
-def foam_phantom(size: int = 512, asfloat: bool = True):
+def foam_phantom(size: int = 512, asfloat: bool = True) -> np.ndarray:
     """Return a 3D foam phantom.
 
     Args:

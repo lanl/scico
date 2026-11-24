@@ -7,7 +7,7 @@
 
 """Distance functions."""
 
-from typing import Callable, Union
+from typing import Any, Callable, Tuple, Union
 
 from scico import numpy as snp
 from scico.numpy import Array, BlockArray
@@ -38,7 +38,7 @@ class SetDistance(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, proj: Callable, args=()):
+    def __init__(self, proj: Callable, args: Tuple[Any, ...] = ()):
         r"""
         Args:
             proj: Function computing the projection into the convex set.
@@ -63,7 +63,7 @@ class SetDistance(Functional):
         return snp.linalg.norm(x - y)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Proximal operator of the :math:`\ell_2` distance function.
 
@@ -109,7 +109,7 @@ class SquaredSetDistance(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, proj: Callable, args=()):
+    def __init__(self, proj: Callable, args: Tuple[Any, ...] = ()):
         r"""
         Args:
             proj: Function computing the projection into the convex set.
@@ -134,7 +134,7 @@ class SquaredSetDistance(Functional):
         return 0.5 * snp.linalg.norm(x - y) ** 2
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Proximal operator of the squared :math:`\ell_2` distance function.
 

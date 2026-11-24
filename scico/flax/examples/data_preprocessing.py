@@ -289,7 +289,10 @@ def preprocess_images(
 
 
 def build_image_dataset(
-    imgs_train, imgs_test, config: ConfigImageSetDict, transf: Optional[Callable] = None
+    imgs_train: Array,
+    imgs_test: Array,
+    config: ConfigImageSetDict,
+    transf: Optional[Callable] = None,
 ) -> Tuple[DataSetDict, ...]:
     """Preprocess and assemble dataset for training.
 
@@ -398,7 +401,7 @@ def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
     return np.stack(slices)
 
 
-def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
+def get_bsds_data(path: str, verbose: bool = False) -> None:  # pragma: no cover
     """Download BSDS500 data from the BSDB project.
 
     Download the BSDS500 dataset, a set of 500 color images of size
@@ -469,7 +472,7 @@ def build_blur_kernel(
     kernel_size: Shape,
     blur_sigma: float,
     dtype: Any = np.float32,
-):
+) -> Array:
     """Construct a blur kernel as specified.
 
     Args:

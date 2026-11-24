@@ -172,6 +172,27 @@ def test_getitem(test_operator_obj):
     np.testing.assert_allclose(x[-1], b1)
 
 
+def test_setitem(test_operator_obj):
+    a0 = test_operator_obj.a0
+    a1 = test_operator_obj.a1
+    x = BlockArray([a0, a1])
+
+    # assignment of an array
+    x[0] = a0 + 1
+    np.testing.assert_allclose(x[0], a0 + 1)
+    assert x.shape == (a0.shape, a1.shape)
+
+    # assignment of an array-like, which must be converted as the constructor
+    # converts its inputs: storing it unconverted leaves dtype raising and
+    # shape reporting the shape of the value's elements rather than the block
+    v = np.full(a1.shape, 2.0, dtype=a1.dtype)
+    x[1] = v.tolist()
+    assert isinstance(x[1], jax.Array)
+    np.testing.assert_allclose(x[1], v)
+    assert x.shape == (a0.shape, a1.shape)
+    assert x.dtype == a1.dtype
+
+
 def test_split(test_operator_obj):
     a = test_operator_obj.a
     np.testing.assert_allclose(a[0], test_operator_obj.a0)

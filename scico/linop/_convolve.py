@@ -11,6 +11,8 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from jax.dtypes import result_type
@@ -25,6 +27,12 @@ from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 class Convolve(LinearOperator):
     """A convolution linear operator."""
 
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so the attribute is
+    # always a Shape here. Re-declaring it narrowly lets the arithmetic methods
+    # below pass it back to the constructor without a cast at each site.
+    input_shape: Shape
+
     def __init__(
         self,
         h: snp.Array,
@@ -32,7 +40,7 @@ class Convolve(LinearOperator):
         input_dtype: DType = np.float32,
         mode: str = "full",
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Wrap :func:`jax.scipy.signal.convolve` as a :class:`.LinearOperator`.
 
@@ -141,6 +149,12 @@ class ConvolveByX(LinearOperator):
     `jax.scipy.signal.convolve(x, y)`.
     """
 
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so the attribute is
+    # always a Shape here. Re-declaring it narrowly lets the arithmetic methods
+    # below pass it back to the constructor without a cast at each site.
+    input_shape: Shape
+
     def __init__(
         self,
         x: snp.Array,
@@ -148,7 +162,7 @@ class ConvolveByX(LinearOperator):
         input_dtype: DType = np.float32,
         mode: str = "full",
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
 

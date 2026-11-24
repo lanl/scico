@@ -249,7 +249,11 @@ To run the type checker, execute the following from the scico repository root:
 
 ::
 
-   mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/
+   mypy
+
+The options are configured in the ``[tool.mypy]`` section of
+``pyproject.toml``, so that this command and the one run by CI cannot
+drift apart.
 
 
 

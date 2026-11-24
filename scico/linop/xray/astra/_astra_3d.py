@@ -27,19 +27,18 @@ side lengths of one.
 
 """
 
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 import numpy.typing
 
 import jax
 from jax.sharding import Sharding
-from jax.typing import ArrayLike
 
 from scipy.spatial.transform import Rotation
 
 try:
-    from collections import Iterable  # type: ignore
+    from collections import Iterable  # type: ignore  # noqa: F401
 except ImportError:
     import collections
 
@@ -183,7 +182,7 @@ def _volume_index_to_astra_world_3d(idx: np.ndarray, vol_geom: VolumeGeometry) -
 
 
 def convert_from_scico_geometry(
-    in_shape: Shape, matrices: ArrayLike, det_shape: Shape
+    in_shape: Shape, matrices: Union[np.ndarray, jax.Array], det_shape: Shape
 ) -> np.ndarray:
     """Convert SCICO projection matrices into ASTRA "parallel3d_vec" vectors.
 

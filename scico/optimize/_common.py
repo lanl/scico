@@ -219,7 +219,7 @@ class Optimizer:
                 raise RuntimeError(f"{k} is not a valid state variable for {type(self)}.")
             setattr(self, k, v)
 
-    def save_state(self, path: str):
+    def save_state(self, path: str) -> None:
         """Save optimizer state to a file.
 
         Save optimizer state to a file.
@@ -236,7 +236,7 @@ class Optimizer:
             **state_vars,
         )
 
-    def load_state(self, path: str):
+    def load_state(self, path: str) -> None:
         """Load optimizer state from a file.
 
         Restore optimizer state from a file.

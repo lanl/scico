@@ -26,7 +26,7 @@ import jax
 import astra
 
 try:
-    from collections import Iterable  # type: ignore
+    from collections import Iterable  # type: ignore  # noqa: F401
 except ImportError:
     import collections
 

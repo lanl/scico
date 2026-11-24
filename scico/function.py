@@ -79,7 +79,7 @@ class Function:
             ]
             dts_out = scico.eval_shape(self._eval, *dts_in)
         if output_shape is None:
-            self.output_shape = dts_out.shape  # type: ignore
+            self.output_shape = dts_out.shape
         else:
             self.output_shape = output_shape
         if output_dtype is None:
@@ -87,7 +87,7 @@ class Function:
         else:
             self.output_dtype = output_dtype
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""{self.__module__}.{self.__class__.__qualname__}
   input_shapes: {self.input_shapes}
   output_shape: {self.output_shape}
@@ -189,7 +189,7 @@ class Function:
         return F.jvp(var_arg, v)
 
     def vjp(
-        self, index: int, *args: Union[Array, BlockArray], conjugate: Optional[bool] = True
+        self, index: int, *args: Union[Array, BlockArray], conjugate: bool = True
     ) -> Tuple[Tuple[Any, ...], Callable]:
         """Vector-Jacobian product with respect to a single parameter.
 
@@ -215,7 +215,7 @@ class Function:
         return F.vjp(var_arg, conjugate=conjugate)
 
     def jacobian(
-        self, index: int, *args: Union[Array, BlockArray], include_eval: Optional[bool] = False
+        self, index: int, *args: Union[Array, BlockArray], include_eval: bool = False
     ) -> LinearOperator:
         """Construct Jacobian linear operator for the function.
 

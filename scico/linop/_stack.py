@@ -50,9 +50,9 @@ class VerticalStack(VerticalStackOperator, LinearOperator):
     def __init__(
         self,
         ops: Sequence[LinearOperator],
-        collapse_output: Optional[bool] = True,
+        collapse_output: bool = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -68,7 +68,7 @@ class VerticalStack(VerticalStackOperator, LinearOperator):
 
         super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)
 
-    def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
+    def _adj(self, y: Union[Array, BlockArray]) -> Array:
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])  # type: ignore
 
 
@@ -114,10 +114,10 @@ class DiagonalStack(DiagonalStackOperator, LinearOperator):
     def __init__(
         self,
         ops: Sequence[LinearOperator],
-        collapse_input: Optional[bool] = True,
-        collapse_output: Optional[bool] = True,
+        collapse_input: bool = True,
+        collapse_output: bool = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -140,7 +140,7 @@ class DiagonalStack(DiagonalStackOperator, LinearOperator):
             **kwargs,
         )
 
-    def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:  # type: ignore
+    def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))  # type: ignore
         if self.collapse_input:
             return snp.stack(result)
@@ -194,7 +194,7 @@ class DiagonalReplicated(DiagonalReplicatedOperator, LinearOperator):
         input_axis: int = 0,
         output_axis: Optional[int] = None,
         map_type: str = "auto",
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:

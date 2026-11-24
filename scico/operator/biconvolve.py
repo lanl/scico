@@ -81,7 +81,12 @@ class BiConvolve(Operator):
     def _eval(self, x: BlockArray) -> Array:
         return convolve(x[0], x[1], mode=self.mode)
 
-    def freeze(self, argnum: int, val: Array) -> scico.linop.LinearOperator:
+    # A BiConvolve operates on a BlockArray of two arrays, so the value a frozen
+    # block is fixed to is necessarily an Array, narrowing the Union[Array,
+    # BlockArray] declared by Operator.freeze.
+    def freeze(  # type: ignore[override]
+        self, argnum: int, val: Array
+    ) -> scico.linop.LinearOperator:
         """Freeze the `argnum` parameter.
 
         Return a new :class:`.LinearOperator` with block argument

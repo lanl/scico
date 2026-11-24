@@ -10,7 +10,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import jax
 from jax import Device
@@ -29,7 +29,7 @@ def power_iteration(
     maxiter: int = 100,
     key: Optional[PRNGKey] = None,
     device: Optional[Union[Device, Sharding]] = None,
-):
+) -> Tuple[Union[float, snp.Array], snp.Array]:
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
 
     Compute largest eigenvalue of a diagonalizable
@@ -77,7 +77,7 @@ def operator_norm(
     maxiter: int = 100,
     key: Optional[PRNGKey] = None,
     device: Optional[Union[Device, Sharding]] = None,
-):
+) -> float:
     r"""Estimate the norm of a :class:`.LinearOperator`.
 
     Estimate the operator norm
@@ -107,15 +107,22 @@ def operator_norm(
     Returns:
         float: Norm of operator :math:`A`.
     """
-    return snp.sqrt(power_iteration(A.H @ A, maxiter=maxiter, key=key, device=device)[0].real)
+    # float(): power_iteration returns a 0D array, so the square root of it is
+    # one too, while this function is documented as returning a float and its
+    # callers treat it as one. Nothing here is jittable, power_iteration driving
+    # its iteration with a Python loop, so the conversion cannot be reached with
+    # a traced value.
+    return float(
+        snp.sqrt(power_iteration(A.H @ A, maxiter=maxiter, key=key, device=device)[0].real)
+    )
 
 
 def valid_adjoint(
     A: LinearOperator,
     AT: LinearOperator,
     eps: Optional[float] = 1e-7,
-    x: Optional[snp.Array] = None,
-    y: Optional[snp.Array] = None,
+    x: Optional[Union[snp.Array, snp.BlockArray]] = None,
+    y: Optional[Union[snp.Array, snp.BlockArray]] = None,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
     r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
@@ -175,15 +182,15 @@ def valid_adjoint(
 
     u = A(x)
     v = AT(y)
-    yTu = snp.sum(y.conj() * u)  # type: ignore
-    vTx = snp.sum(v.conj() * x)  # type: ignore
+    yTu = snp.sum(y.conj() * u)
+    vTx = snp.sum(v.conj() * x)
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
     return float(err) < eps
 
 
-def jacobian(F: Operator, u: snp.Array, include_eval: Optional[bool] = False) -> LinearOperator:
+def jacobian(F: Operator, u: snp.Array, include_eval: bool = False) -> LinearOperator:
     """Construct Jacobian linear operator for a general operator.
 
     For a specified :class:`.Operator`, construct a corresponding

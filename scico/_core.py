@@ -55,7 +55,7 @@ def _convert_ba_dts(arg: Any) -> Any:
         return arg
 
 
-def eval_shape(fun: Callable, *args, **kwargs) -> Any:
+def eval_shape(fun: Callable, *args: Any, **kwargs: Any) -> Any:
     """Compute the shape and dtype of a function without executing it.
 
     Compute the shape and dtype of a function without executing it, via
@@ -125,7 +125,7 @@ def value_and_grad(
     return conjugated_value_and_grad_aux if has_aux else conjugated_value_and_grad
 
 
-def linear_transpose(fun: Callable, *primals) -> Callable:
+def linear_transpose(fun: Callable, *primals: Any) -> Callable:
     """Transpose a function that is guaranteed to be linear.
 
     :func:`scico.linear_adjoint` differs from :func:`jax.linear_transpose`
@@ -137,7 +137,7 @@ def linear_transpose(fun: Callable, *primals) -> Callable:
     return jax.linear_transpose(fun, *mapped_primals)
 
 
-def linear_adjoint(fun: Callable, *primals) -> Callable:
+def linear_adjoint(fun: Callable, *primals: Any) -> Callable:
     """Conjugate transpose a function that is guaranteed to be linear.
 
     :func:`scico.linear_adjoint` differs from :func:`jax.linear_transpose`
@@ -174,7 +174,9 @@ def jacrev(
     return conjugated_jacrev
 
 
-def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any, ...], Callable]:
+def cvjp(
+    fun: Callable, *primals: Any, jidx: Optional[int] = None
+) -> Tuple[Tuple[Any, ...], Callable]:
     r"""Compute a vector-Jacobian product with conjugate transpose.
 
     Compute the product :math:`[J(\mb{x})]^H \mb{v}` where

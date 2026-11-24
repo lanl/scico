@@ -7,7 +7,7 @@
 
 """Implementation of the proximal average method."""
 
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from scico.numpy import Array, BlockArray, isinf
 
@@ -37,7 +37,7 @@ class ProximalAverage(Functional):
         self,
         func_list: List[Functional],
         alpha_list: Optional[List[float]] = None,
-        no_inf_eval=True,
+        no_inf_eval: bool = True,
     ):
         """
         Args:
@@ -73,7 +73,7 @@ class ProximalAverage(Functional):
                 alpha_list = [alpha / alpha_sum for alpha in alpha_list]
             self.alpha_list = alpha_list
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + "  components: "
@@ -96,7 +96,7 @@ class ProximalAverage(Functional):
             )
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Approximate proximal operator of the average of functionals.
 

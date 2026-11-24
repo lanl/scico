@@ -55,7 +55,12 @@ class SubproblemSolver:
             solver is attached.
     """
 
-    def internal_init(self, admm: soa.ADMM):
+    #: True if the solver computes its accuracy after each solve. Declared, but
+    #: not given a value, because :class:`.ADMM` reads it while only the solvers
+    #: that support an accuracy check set it in their initializers.
+    check_solve: bool
+
+    def internal_init(self, admm: soa.ADMM) -> None:
         """Second stage initializer to be called by :meth:`.ADMM.__init__`.
 
         Args:
@@ -63,6 +68,19 @@ class SubproblemSolver:
                :class:`.SubproblemSolver` object is to be attached.
         """
         self.admm = admm
+
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value.
+
+        Returns:
+            Computed solution.
+        """
+        # Subclasses are required to override this method; it is declared here
+        # because ADMM.step calls it on whichever solver it was given.
+        raise NotImplementedError(f"Solver {type(self)} does not implement the solve method.")
 
 
 class GenericSubproblemSolver(SubproblemSolver):
@@ -202,7 +220,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         self.info = None
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise TypeError(
@@ -331,7 +349,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         self.solve_kwargs = default_solve_kwargs
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise TypeError(
@@ -365,7 +383,9 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         )
         self.solver = MatrixATADSolver(A, Csum, W, **self.solve_kwargs)
 
-    def solve(self, x0: Array) -> Array:
+    # This solver is backed by MatrixATADSolver, which handles arrays only, so it
+    # narrows the Union[Array, BlockArray] declared by LinearSubproblemSolver.solve.
+    def solve(self, x0: Array) -> Array:  # type: ignore[override]
         """Solve the ADMM step.
 
         Args:

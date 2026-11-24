@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from ._operator import Operator
 
 
 def collapse_shapes(
-    shapes: Sequence[Union[Shape, BlockShape]], allow_collapse=True
+    shapes: Sequence[Union[Shape, BlockShape]], allow_collapse: bool = True
 ) -> Tuple[Union[Shape, BlockShape], bool]:
     """Compute the collapsed representation of a sequence of shapes.
 
@@ -63,9 +63,9 @@ class VerticalStack(Operator):
     def __init__(
         self,
         ops: Sequence[Operator],
-        collapse_output: Optional[bool] = True,
+        collapse_output: bool = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -99,7 +99,7 @@ class VerticalStack(Operator):
         )
 
     @staticmethod
-    def check_if_stackable(ops: Sequence[Operator]):
+    def check_if_stackable(ops: Sequence[Operator]) -> None:
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
             raise TypeError("Expected a list of Operator.")
@@ -128,7 +128,7 @@ class VerticalStack(Operator):
             return snp.stack([op(x) for op in self.ops])
         return BlockArray([op(x) for op in self.ops])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         crepr = ", ".join([str(f) for f in self.ops])
         return Operator.__repr__(self) + f"""  components: {crepr}\n"""
 
@@ -167,10 +167,10 @@ class DiagonalStack(Operator):
     def __init__(
         self,
         ops: Sequence[Operator],
-        collapse_input: Optional[bool] = True,
-        collapse_output: Optional[bool] = True,
+        collapse_input: bool = True,
+        collapse_output: bool = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -205,7 +205,7 @@ class DiagonalStack(Operator):
         )
 
     @staticmethod
-    def check_if_stackable(ops: Sequence[Operator]):
+    def check_if_stackable(ops: Sequence[Operator]) -> None:
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
             raise TypeError("Expected a list of Operator.")
@@ -223,7 +223,7 @@ class DiagonalStack(Operator):
             return snp.stack(result)
         return snp.blockarray(result)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         crepr = ", ".join([str(f) for f in self.ops])
         return Operator.__repr__(self) + f"""  components: {crepr}\n"""
 
@@ -267,7 +267,7 @@ class DiagonalReplicated(Operator):
         input_axis: int = 0,
         output_axis: Optional[int] = None,
         map_type: str = "auto",
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -331,7 +331,7 @@ class DiagonalReplicated(Operator):
             **kwargs,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Operator.__repr__(self)
             + f"""  component:  {str(self.op)}\n  replicates: {self.replicates}\n"""

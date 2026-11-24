@@ -22,8 +22,14 @@ jobs:
         with:
           python-version: "3.14"
       - name: Install dependencies
+        # The package requirements are installed so that mypy can resolve the
+        # types of the third-party packages. Without them, mypy cannot find
+        # those packages, and the ignore_missing_imports setting reduces
+        # everything imported from them to Any, which silently disables most
+        # of the checking.
         run: |
           pip install mypy
+          pip install -r requirements.txt
       - name: Run mypy
         run: |
-          mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/ scico/numpy/util.py
+          mypy

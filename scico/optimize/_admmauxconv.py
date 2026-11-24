@@ -87,7 +87,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         self.conv_class = conv_class
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is None:
             is_cc = [isinstance(C, self.conv_class) for C in admm.C_list]
             if any(is_cc):
@@ -313,7 +313,7 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
         self.accuracy: Optional[float] = None
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is None:
             raise ValueError("FBlockCircularConvolveSolver does not allow f to be None.")
         else:
@@ -491,7 +491,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
         self.accuracy: Optional[float] = None
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is not None and not isinstance(admm.f, ZeroFunctional):
             raise ValueError(
                 "G0BlockCircularConvolveSolver requires f to be None or a ZeroFunctional"

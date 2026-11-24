@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from jax import Device
 from jax.sharding import Sharding
@@ -68,7 +68,7 @@ class ProximalADMMBase(Optimizer):
         z0: Optional[Union[Array, BlockArray]] = None,
         u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`ProximalADMMBase` object.
 
@@ -130,11 +130,15 @@ class ProximalADMMBase(Optimizer):
             and snp.all(snp.isfinite(self.u))
         )
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated."""
-        return self.f.has_eval and self.g.has_eval
+        # bool(): Functional.has_eval is declared Optional[bool], being None until a
+        # subclass sets it, so the conjunction below is Optional[bool] while the base
+        # class declares this method as returning bool. The value is only ever used in
+        # a boolean test, so None and False are already equivalent to every caller.
+        return bool(self.f.has_eval and self.g.has_eval)
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define linearized ADMM-specific iteration statistics fields."""
         itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
@@ -236,7 +240,7 @@ class ProximalADMM(ProximalADMMBase):
         z0: Optional[Union[Array, BlockArray]] = None,
         u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`ProximalADMM` object.
 
@@ -263,6 +267,10 @@ class ProximalADMM(ProximalADMMBase):
                 initializer of base class :class:`.Optimizer`.
         """
         self.A: LinearOperator = A
+        # Operator.__neg__ is declared as returning an Operator, so without this
+        # declaration B is inferred as one and its adjoint is not visible. Negating
+        # an Identity in fact yields a ScaledIdentity, which is a LinearOperator.
+        self.B: LinearOperator
         if B is None:
             self.B = -Identity(self.A.output_shape, self.A.output_dtype)
         else:
@@ -346,7 +354,7 @@ class ProximalADMM(ProximalADMMBase):
             rsdl = self.A.H(self.B(self.z - self.z_old))
         return norm(rsdl)
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single algorithm iteration.
 
         Perform a single algorithm iteration.
@@ -401,6 +409,7 @@ class ProximalADMM(ProximalADMMBase):
             depending on the value of the `factor` parameter.
         """
         mu = operator_norm(A, maxiter=maxiter, key=key, device=xdevice) ** 2
+        nu: float
         if B is None:
             nu = 1.0
         else:
@@ -469,7 +478,7 @@ class NonLinearPADMM(ProximalADMMBase):
         z0: Optional[Union[Array, BlockArray]] = None,
         u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`NonLinearPADMM` object.
 
@@ -578,7 +587,7 @@ class NonLinearPADMM(ProximalADMMBase):
             rsdl = AH(B(self.z - self.z_old))
         return norm(rsdl)
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single algorithm iteration.
 
         Perform a single algorithm iteration.

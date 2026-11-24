@@ -45,9 +45,7 @@ __all__ = [
 def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lglc=None, **kwargs):
     """Plot points or lines in 2D.
 
-    Plot points or lines in 2D. If a figure object is specified then the
-    plot is drawn in that figure, and `fig.show()` is not called. The
-    figure is closed on key entry 'q'.
+    Plot points or lines in 2D. The figure is closed on key entry 'q'.
 
     Args:
         y (array_like): 1d or 2d array of data to plot. If a 2d array,
@@ -82,8 +80,8 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
             =====  ==================== ===================================
             fgsz   tuple (width,height) Specify figure dimensions in inches
             fgnm   integer              Figure number of figure
-            fig    |mplfg|              Draw in specified figure instead of
-                                        creating one
+            fig    |mplfg|              Accepted for backward compatibility
+                                        and ignored
             ax     |mplax|              Plot in specified axes instead of
                                         current axes of figure
             =====  ==================== ===================================
@@ -111,7 +109,8 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
     xlog, ylog = ptyp_options[ptyp]
     fgsz = kwargs.pop("fgsz", None)
     fgnm = kwargs.pop("fgnm", None)
-    fig = kwargs.pop("fig", None)
+    # fig is accepted for backward compatibility but not supported by komplot
+    kwargs.pop("fig", None)
     ax = kwargs.pop("ax", None)
     if x is None:
         lplt = kplt.plot(
@@ -168,9 +167,7 @@ def surf(
 ):
     """Plot a 2D surface in 3D.
 
-    Plot a 2D surface in 3D. If a figure object is specified then the
-    surface is drawn in that figure, and `fig.show()` is not called.
-    The figure is closed on key entry 'q'.
+    Plot a 2D surface in 3D. The figure is closed on key entry 'q'.
 
     Args:
         z (array_like): 2d array of data to plot.
@@ -198,7 +195,8 @@ def surf(
             figure dimensions in inches.
         fgnm (integer, optional (default ``None``)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default ``None``)):
-            Draw in specified figure instead of creating one.
+            Accepted for backward compatibility, and ignored: drawing
+            into an existing figure is not supported by komplot.
         ax (:class:`matplotlib.axes.Axes` object, optional (default ``None``)):
             Plot in specified axes instead of creating one.
 
@@ -216,6 +214,8 @@ def surf(
     )
     if not have_komplot:
         raise RuntimeError("Package komplot is required for use of this function.")
+    # The fig parameter is accepted for backward compatibility but is not
+    # forwarded: komplot does not support drawing into an existing figure.
     splt = kplt.surface(
         z,
         x=x,
@@ -261,9 +261,7 @@ def contour(
 ):
     """Contour plot of a 2D surface.
 
-    Contour plot of a 2D surface. If a figure object is specified then
-    the plot is drawn in that figure, and `fig.show()` is not called.
-    The figure is closed on key entry 'q'.
+    Contour plot of a 2D surface. The figure is closed on key entry 'q'.
 
     Args:
         z (array_like): 2d array of data to plot.
@@ -299,7 +297,8 @@ def contour(
             figure dimensions in inches.
         fgnm (integer, optional (default ``None``)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default ``None``)):
-            Draw in specified figure instead of creating one.
+            Accepted for backward compatibility, and ignored: drawing
+            into an existing figure is not supported by komplot.
         ax (:class:`matplotlib.axes.Axes` object, optional (default ``None``)):
             Plot in specified axes instead of current axes of figure.
 
@@ -317,6 +316,8 @@ def contour(
     )
     if not have_komplot:
         raise RuntimeError("Package komplot is required for use of this function.")
+    # The fig parameter is accepted for backward compatibility but is not
+    # forwarded: komplot does not support drawing into an existing figure.
     cplt = kplt.contour(
         z,
         x=x,
@@ -358,9 +359,7 @@ def imview(
     """Display an image.
 
     Display an image. Pixel values are displayed when the pointer is over
-    valid image data. If a figure object is specified then the image is
-    drawn in that figure, and `fig.show()` is not called. The figure is
-    closed on key entry 'q'.
+    valid image data. The figure is closed on key entry 'q'.
 
     Args:
         img (array_like, shape (Nr, Nc) or (Nr, Nc, 3) or (Nr, Nc, 4)):
@@ -390,7 +389,8 @@ def imview(
         fgnm (integer, optional (default ``None``)): Figure number of
             figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default ``None``)):
-            Draw in specified figure instead of creating one.
+            Accepted for backward compatibility, and ignored: drawing
+            into an existing figure is not supported by komplot.
         ax (:class:`matplotlib.axes.Axes` object, optional (default ``None``)):
             Plot in specified axes instead of current axes of figure.
 
@@ -411,6 +411,8 @@ def imview(
     )
     if not have_komplot:
         raise RuntimeError("Package komplot is required for use of this function.")
+    # The fig parameter is accepted for backward compatibility but is not
+    # forwarded: komplot does not support drawing into an existing figure.
     imv = kplt.imview(
         img,
         interpolation=intrp,
@@ -449,7 +451,7 @@ def close(fig=None):
         plt.close(fig)
 
 
-def _in_ipython():
+def _in_ipython() -> bool:
     """Determine whether code is running in an ipython shell.
 
     Returns:
@@ -463,14 +465,17 @@ def _in_ipython():
         stacklevel=2,
     )
     try:
-        # See https://stackoverflow.com/questions/15411967
-        shell = get_ipython().__class__.__name__
+        # See https://stackoverflow.com/questions/15411967. IPython injects
+        # get_ipython into builtins, so the name exists only when running under
+        # IPython, and the except clause below is how its absence is detected.
+        # pyflakes recognises that idiom; mypy has no special case for it.
+        shell = get_ipython().__class__.__name__  # type: ignore[name-defined]
         return bool(shell == "TerminalInteractiveShell")
     except NameError:
         return False
 
 
-def _in_notebook():
+def _in_notebook() -> bool:
     """Determine whether code is running in a Jupyter Notebook shell.
 
     Returns:
@@ -484,8 +489,9 @@ def _in_notebook():
         stacklevel=2,
     )
     try:
-        # See https://stackoverflow.com/questions/15411967
-        shell = get_ipython().__class__.__name__
+        # As in _in_ipython above, get_ipython is a builtin injected by IPython.
+        # See https://stackoverflow.com/questions/15411967.
+        shell = get_ipython().__class__.__name__  # type: ignore[name-defined]
         return bool(shell == "ZMQInteractiveShell")
     except NameError:
         return False
@@ -515,6 +521,8 @@ def set_ipython_plot_backend(backend="qt"):
         raise RuntimeError("Package matplotlib is required for use of this function.")
     if _in_ipython():
         # See https://stackoverflow.com/questions/35595766
+        from IPython import get_ipython
+
         get_ipython().run_line_magic("matplotlib", backend)
 
 
@@ -542,10 +550,12 @@ def set_notebook_plot_backend(backend="inline"):
         raise RuntimeError("Package matplotlib is required for use of this function.")
     if _in_notebook():
         # See https://stackoverflow.com/questions/35595766
+        from IPython import get_ipython
+
         get_ipython().run_line_magic("matplotlib", backend)
 
 
-def config_notebook_plotting():
+def config_notebook_plotting() -> None:
     """Configure plotting functions for inline plotting.
 
     Configure plotting functions for inline plotting within a Jupyter

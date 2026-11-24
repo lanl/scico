@@ -127,7 +127,7 @@ class Propagator(LinearOperator):
         k0: float,
         z: float,
         pad_factor: int = 1,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -170,16 +170,19 @@ class Propagator(LinearOperator):
         )  # computational plane size
         #: Transverse Fourier coordinates (radial)
         self.kp = radial_transverse_frequency(self.padded_shape, dx)
-        #: Source plane sampling interval
-        self.dx: Union[float, Tuple[float, ...]] = dx
+        #: Source plane sampling interval. Always a tuple: a scalar argument is
+        #: expanded to one per dimension by the _isscalar branch above.
+        self.dx: Tuple[float, ...] = dx
         #: Propagation distance
         self.z: float = z
 
         # Fourier operator
         self.F = DFT(input_shape=input_shape, axes_shape=self.padded_shape, jit=False)
 
-        # Diagonal operator; phase shifting
-        self.D: LinearOperator = Identity(self.kp.shape)
+        # Diagonal operator; phase shifting. Identity is a ScaledIdentity, hence a
+        # Diagonal, and each subclass replaces it with a Diagonal of its own phase;
+        # declaring that here is what lets pinv read the diagonal.
+        self.D: Diagonal = Identity(self.kp.shape)
 
         super().__init__(
             input_shape=input_shape,
@@ -190,7 +193,7 @@ class Propagator(LinearOperator):
             **kwargs,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         extra_repr = f"""  k0:  {self.k0}
   λ:   {2*np.pi/self.k0}
   z:   {self.z}
@@ -258,7 +261,7 @@ class AngularSpectrumPropagator(Propagator):
         z: float,
         pad_factor: int = 1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -290,7 +293,7 @@ class AngularSpectrumPropagator(Propagator):
         if jit:
             self.jit()
 
-    def adequate_sampling(self):
+    def adequate_sampling(self) -> np.bool_:
         r"""Verify the angular spectrum kernel is not aliased.
 
         Checks the condition for adequate sampling
@@ -372,7 +375,7 @@ class FresnelPropagator(Propagator):
         z: float,
         pad_factor: int = 1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(
             input_shape=input_shape, dx=dx, k0=k0, z=z, pad_factor=pad_factor, **kwargs
@@ -386,7 +389,7 @@ class FresnelPropagator(Propagator):
         if jit:
             self.jit()
 
-    def adequate_sampling(self):
+    def adequate_sampling(self) -> np.bool_:
         r"""Verify the Fresnel propagation kernel is not aliased.
 
         Checks the condition for adequate sampling
@@ -461,6 +464,11 @@ class FraunhoferPropagator(LinearOperator):
          \quad \Delta y_S \geq \sqrt{\frac{2 \pi z}{N_y k_0}} \;.
     """
 
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so iterating it yields
+    # ints rather than ints or tuples.
+    input_shape: Shape
+
     def __init__(
         self,
         input_shape: Shape,
@@ -468,7 +476,7 @@ class FraunhoferPropagator(LinearOperator):
         k0: float,
         z: float,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -543,7 +551,7 @@ class FraunhoferPropagator(LinearOperator):
         if jit:
             self.jit()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         extra_repr = f"""  k0:   {self.k0}
   λ:    {2*np.pi/self.k0}
   z:    {self.z}
@@ -560,7 +568,7 @@ class FraunhoferPropagator(LinearOperator):
         y = snp.fft.ifftshift(y)
         return y
 
-    def adequate_sampling(self):
+    def adequate_sampling(self) -> np.bool_:
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
         Checks the condition for adequate sampling

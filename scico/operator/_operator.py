@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union, overload
 
 import numpy as np
 
@@ -68,8 +68,8 @@ class Operator:
 
     def __init__(
         self,
-        input_shape: Union[Shape, BlockShape],
-        output_shape: Optional[Union[Shape, BlockShape]] = None,
+        input_shape: Union[int, Shape, BlockShape],
+        output_shape: Optional[Union[int, Shape, BlockShape]] = None,
         eval_fn: Optional[Callable] = None,
         input_dtype: DType = np.float32,
         output_dtype: Optional[DType] = None,
@@ -77,10 +77,14 @@ class Operator:
     ):
         r"""
         Args:
-            input_shape: Shape of input array.
+            input_shape: Shape of input array. A bare integer is
+                accepted as a shorthand for a one-dimensional shape, and
+                is recorded in the `input_shape` attribute as a
+                length-one tuple.
             output_shape: Shape of output array. Defaults to ``None``.
                 If ``None``, `output_shape` is determined by evaluating
-                `self.__call__` on an input array of zeros.
+                `self.__call__` on an input array of zeros. A bare
+                integer is accepted, as for `input_shape`.
             eval_fn: Function used in evaluating this :class:`.Operator`.
                 Defaults to ``None``. Required unless `__init__` is being
                 called from a derived class with an `_eval` method.
@@ -136,7 +140,7 @@ class Operator:
 
         # Allows for dynamic creation of new Operator/LinearOperator, e.g. for adjoints
         if eval_fn:
-            self._eval = eval_fn  # type: ignore
+            self._eval = eval_fn
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
                 "Operator is an abstract base class when argument 'eval_fn' is not specified."
@@ -149,7 +153,7 @@ class Operator:
                 self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=input_dtype)
             )
         if output_shape is None:
-            self.output_shape = dts.shape  # type: ignore
+            self.output_shape = dts.shape
         else:
             self.output_shape = (output_shape,) if isinstance(output_shape, int) else output_shape
         if output_dtype is None:
@@ -169,20 +173,30 @@ class Operator:
         if jit:
             self.jit()
 
-    def jit(self):
+    def jit(self) -> None:
         """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"""{self.__module__}.{self.__class__.__qualname__}"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""{str(self)}
   input_shape:  {self.input_shape}
   output_shape: {self.output_shape}
   input_dtype:  {dtype_name(self.input_dtype)}
   output_dtype: {dtype_name(self.output_dtype)}
 """
+
+    # Calling an Operator on another Operator composes the two, while calling it on
+    # an array evaluates it, so the return type depends on the argument type. The
+    # overloads express that; without them every evaluation is typed as possibly
+    # returning an Operator, which makes arithmetic on the result an error.
+    @overload
+    def __call__(self, x: Operator) -> Operator: ...
+
+    @overload
+    def __call__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]: ...
 
     def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.
