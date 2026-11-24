@@ -81,7 +81,7 @@ def image_channels(props: ImageProperties) -> int:
             `shape`.
 
     Returns:
-        Channel count (`shape[-1]` for 3D arrays, otherwise `1`).
+        Channel count (:code:`shape[-1]` for 3D arrays, otherwise ``1``).
     """
     return int(props.shape[-1]) if len(props.shape) == 3 else 1
 
@@ -102,7 +102,7 @@ def extract_blocks(
 
     Returns:
         A strided array view with shape
-        `(*num_blocks, *block_shape, *image.shape[len(block_shape):])`, where
+        :code:`(*num_blocks, *block_shape, *image.shape[len(block_shape):])`, where
         `num_blocks` gives the number of blocks along each axis in `block_shape`.
     """
     # Reference: http://stackoverflow.com/questions/16774148 and
@@ -143,7 +143,7 @@ def num_image_blocks(
     Args:
         image_shape: Spatial or array dimensions of the image.
         block_shape: Target block dimensions.
-        block_step: Step sizes between blocks; missing entries default to `1`.
+        block_step: Step sizes between blocks; missing entries default to ``1``.
 
     Returns:
         Total number of blocks across all dimensions.
@@ -223,7 +223,8 @@ def get_image_blocks(
         num_blocks: Total number of blocks to sample across all images.
 
     Returns:
-        Array of sampled blocks with shape `(num_blocks, *block_shape, *trailing_dims)`.
+        Array of sampled blocks with shape
+        :code:`(num_blocks, *block_shape, *trailing_dims)`.
 
     Raises:
         ValueError: If `num_blocks` exceeds the total number of available blocks.
