@@ -22,10 +22,10 @@ import jax.numpy as jnp
 
 from flax import jax_utils
 from scico.numpy import Array
+from scico.typing import DType
 
 from .typed_dict import DataSetDict, PyTree
 
-DType = Any
 KeyArray = Union[Array, jax.Array]
 
 

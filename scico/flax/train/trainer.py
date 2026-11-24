@@ -26,6 +26,7 @@ from flax import jax_utils
 from flax.training import common_utils
 from scico.diagnostics import IterationStats
 from scico.numpy import Array
+from scico.typing import DType
 
 from .checkpoints import checkpoint_restore, checkpoint_save
 from .clu_utils import get_parameter_overview
@@ -40,7 +41,6 @@ from .typed_dict import ConfigDict, DataSetDict, MetricsDict, ModelVarDict
 ModuleDef = Any
 KeyArray = Union[Array, jax.Array]
 PyTree = Any
-DType = Any
 
 
 # sync across replicas
