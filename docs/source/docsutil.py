@@ -183,3 +183,57 @@ def insert_inheritance_diagram(clsqname, parts=None, default_nparts=2):
     # Construct new docstring and attach it to the class
     extdocstr = "\n".join(lines)
     setattr(cls, "__doc__", extdocstr)
+
+
+class TypehintsFormatter:
+    """Custom type hint formatter for :mod:`sphinx_autodoc_typehints`.
+
+    A callable class is used rather than a function because
+    :mod:`sphinx` discards unpicklable configuration values (which
+    includes all functions) when caching the build environment, which
+    both generates a warning and forces a full rebuild on every run (see
+    `sphinx.config.is_serializable`). An instance of this class holds no
+    state, and is therefore trivially picklable.
+    """
+
+    # Cached on the class rather than on instances so that instances
+    # remain trivially picklable.
+    _markup_dict = None
+
+    def __eq__(self, other):
+        # Required so that sphinx does not consider the configuration
+        # value to have changed when comparing the cached instance with a
+        # newly-constructed one.
+        return isinstance(other, self.__class__)
+
+    def __hash__(self):
+        return hash(self.__class__)
+
+    @classmethod
+    def _markup(cls):
+        if cls._markup_dict is not None:
+            return cls._markup_dict
+
+        from typing import Optional, Sequence, Union
+
+        from scico.typing import ArrayIndex, AxisIndex, DType
+
+        cls._markup_dict = {
+            DType: ":obj:`~scico.typing.DType`",
+            # Compound types involving DType must be added here to avoid their
+            # DType component being expanded in the docs.
+            Optional[DType]: r":obj:`~typing.Optional`\ [\ :obj:`~scico.typing.DType`\ ]",
+            Union[DType, Sequence[DType]]: (
+                r":obj:`~typing.Union`\ [\ :obj:`~scico.typing.DType`\ , "
+                r":obj:`~typing.Sequence`\ [\ :obj:`~scico.typing.DType`\ ]]"
+            ),
+            AxisIndex: ":obj:`~scico.typing.AxisIndex`",
+            ArrayIndex: ":obj:`~scico.typing.ArrayIndex`",
+        }
+        return cls._markup_dict
+
+    def __call__(self, annotation, config):
+        markup = self._markup()
+        if annotation in markup:
+            return markup[annotation]
+        return None

@@ -1,11 +1,4 @@
-from typing import Optional, Sequence, Union  # needed for typehints_formatter hack
-
-from scico.typing import (  # needed for typehints_formatter hack
-    ArrayIndex,
-    AxisIndex,
-    DType,
-)
-
+from docsutil import TypehintsFormatter
 
 # An explanation for this nasty hack, the primary purpose of which is to avoid
 # the very long definition of the scico.typing.DType appearing explicitly in the
@@ -20,29 +13,13 @@ from scico.typing import (  # needed for typehints_formatter hack
 # which gives a consistent appearance to the type hints, but the
 # autodoc_type_aliases configuration option is ignored, and type aliases are
 # always expanded. This hack avoids expansion for the type aliases with the
-# longest definitions by definining a custom function for formatting the
-# type hints, using an option provided by sphinx_autodoc_typehints. For
+# longest definitions by definining a custom callable for formatting the
+# type hints, using an option provided by sphinx_autodoc_typehints. The
+# callable is an instance of a class defined in docsutil rather than a plain
+# function because sphinx is unable to cache function-valued configuration
+# values, which results in a warning and a full rebuild on every run. For
 # more information, see
 #   https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_type_aliases
 #   https://github.com/tox-dev/sphinx-autodoc-typehints/issues/284
 #   https://github.com/tox-dev/sphinx-autodoc-typehints/blob/main/README.md
-def typehints_formatter_function(annotation, config):
-    markup = {
-        DType: ":obj:`~scico.typing.DType`",
-        # Compound types involving DType must be added here to avoid their DType
-        # component being expanded in the docs.
-        Optional[DType]: r":obj:`~typing.Optional`\ [\ :obj:`~scico.typing.DType`\ ]",
-        Union[DType, Sequence[DType]]: (
-            r":obj:`~typing.Union`\ [\ :obj:`~scico.typing.DType`\ , "
-            r":obj:`~typing.Sequence`\ [\ :obj:`~scico.typing.DType`\ ]]"
-        ),
-        AxisIndex: ":obj:`~scico.typing.AxisIndex`",
-        ArrayIndex: ":obj:`~scico.typing.ArrayIndex`",
-    }
-    if annotation in markup:
-        return markup[annotation]
-    else:
-        return None
-
-
-typehints_formatter = typehints_formatter_function
+typehints_formatter = TypehintsFormatter()
