@@ -143,22 +143,6 @@ def process_docstring(app, what, name, obj, options, lines):
                     refpattern.replace(r"\d+", labelpattern), lambda m: altlabel(m) + "_", line
                 )
 
-    # Don't show docs for inherited members in classes in scico.flax.
-    # This is primarily useful for silencing warnings due to problems in
-    # the current release of flax, but is arguably also useful in avoiding
-    # extensive documentation of methods that are likely to be of limited
-    # interest to users of the scico.flax classes.
-    #
-    # Note: this event handler currently has no effect since inclusion of
-    #   inherited members is currently globally disabled (see
-    #   "inherited-members" in autodoc_default_options), but is left in
-    #   place in case a decision is ever made to revert the global setting.
-    #
-    # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
-    # for documentation of the autodoc-process-docstring event used here.
-    if what == "class" and "scico.flax." in name:
-        options["inherited-members"] = False
-
 
 def setup(app):
     app.connect("builder-inited", class_inherit_diagrams)
