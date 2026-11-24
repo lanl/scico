@@ -198,7 +198,7 @@ def get_image_numblocks(
     Returns:
         1D `uint32` array containing the block count for each file in `paths`.
     """
-    num_blocks_per_image = np.zeros(len(paths), dtype=np.uint32)
+    num_blocks_per_image: npt.NDArray[np.uint32] = np.zeros(len(paths), dtype=np.uint32)
 
     for idx, path in enumerate(paths):
         props = iio.improps(path)

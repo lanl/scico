@@ -10,7 +10,7 @@ from flax.core import unfreeze
 from flax.errors import ScopeParamShapeError
 from flax.linen import BatchNorm, Conv, elu, leaky_relu, max_pool, relu
 from scico import flax as sflax
-from scico.data import _flax_data_path
+from scico.data import flax_data_path
 from scico.random import randn
 
 
@@ -310,7 +310,7 @@ def test_variable_load(variant):
 
     model = sflax.DnCNNNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
     # Load weights for DnCNN.
-    variables = sflax.load_variables(_flax_data_path("dncnn%s.mpk" % variant))
+    variables = sflax.load_variables(flax_data_path("dncnn%s.mpk" % variant))
 
     try:
         fmap = sflax.FlaxMap(model, variables)
@@ -328,7 +328,7 @@ def test_variable_load_mismatch():
     nlayer = 6
     model = sflax.ResNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
     # Load weights for DnCNN.
-    variables = sflax.load_variables(_flax_data_path("dncnn6L.mpk"))
+    variables = sflax.load_variables(flax_data_path("dncnn6L.mpk"))
 
     # created with mismatched parameters
     fmap = sflax.FlaxMap(model, variables)
