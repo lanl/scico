@@ -7,7 +7,6 @@
 
 """Utility functions used by example scripts."""
 
-from itertools import zip_longest
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -400,46 +399,20 @@ def create_block_phantom(out_shape: Shape) -> np.ndarray:
     return low_res[indices[0], indices[1], indices[2]]
 
 
-def _extract_blocks(
-    img: np.ndarray, blksz: Tuple[int, ...], stpsz: Optional[Tuple[int, ...]] = None
-) -> np.ndarray:
-    """Extract blocks from an ndarray image into an ndarray.
+def _fill_blocks(
+    array: np.ndarray, block_shape: Tuple[int, int], block_step: Tuple[int, int]
+) -> None:
+    """Set a regular grid of blocks within a 2D array to unity.
 
     Args:
-        img: 2D array from which blocks are to be extracted.
-        blksz: Tuple specifying block size.
-        stpsz: Tuple specifying step between blocks.
-
-    Returns:
-        A 3D array with the first two dimensions corresponding
-        to the block size and the final dimension corresponding
-        to the number of blocks.
+        array: Array to be modified in place.
+        block_shape: Block height and width.
+        block_step: Step between the origins of adjacent blocks, along
+           height and width.
     """
-    # This function copied from the sporco.array module.
-
-    # See http://stackoverflow.com/questions/16774148 and
-    # sklearn.feature_extraction.image.extract_patches_2d
-    if isinstance(img, tuple):
-        img = np.stack(img, axis=-1)
-
-    if stpsz is None:
-        stpsz = (1,) * len(blksz)
-
-    imgsz = img.shape
-
-    # Calculate the number of blocks that can fit in each dimension of
-    # the images
-    numblocks = tuple(
-        int(np.floor((a - b) / c) + 1) for a, b, c in zip_longest(imgsz, blksz, stpsz, fillvalue=1)
-    )
-
-    # Calculate the strides for blocks
-    blockstrides = tuple(a * b for a, b in zip_longest(img.strides, stpsz, fillvalue=1))
-
-    new_shape = blksz + numblocks
-    new_strides = img.strides[: len(blksz)] + blockstrides
-    blks = np.lib.stride_tricks.as_strided(img, new_shape, new_strides)
-    return blks
+    for row in range(0, array.shape[0] - block_shape[0] + 1, block_step[0]):
+        for col in range(0, array.shape[1] - block_shape[1] + 1, block_step[1]):
+            array[row : row + block_shape[0], col : col + block_shape[1]] = 1
 
 
 def create_laminar_phantom() -> np.ndarray:
@@ -453,14 +426,12 @@ def create_laminar_phantom() -> np.ndarray:
     vol: np.ndarray = np.zeros((64, 256, 256), dtype=np.float32)
 
     layer1 = np.zeros(vol.shape[1:])
-    layer1blks = _extract_blocks(layer1, (48, 48), (64, 64))
-    layer1blks[:] = 1
+    _fill_blocks(layer1, (48, 48), (64, 64))
     layer1 = np.roll(layer1, (8, 8), (0, 1))
     vol[0:8] = layer1
 
     layer2 = np.zeros(vol.shape[1:])
-    layer2blks = _extract_blocks(layer2, (16, 16), (64, 64))
-    layer2blks[:] = 1
+    _fill_blocks(layer2, (16, 16), (64, 64))
     layer2 = np.roll(layer2, (24, 24), (0, 1))
     vol[16:24] = layer2
 
@@ -481,8 +452,7 @@ def create_laminar_phantom() -> np.ndarray:
     vol[40:44] = layer5.T
 
     layer6 = np.zeros(vol.shape[1:])
-    layer6blks = _extract_blocks(layer6, (4, 4), (32, 32))
-    layer6blks[:] = 1
+    _fill_blocks(layer6, (4, 4), (32, 32))
     layer6 = np.roll(layer6, (30, 30), (0, 1))
     layer6[0:4] = 0
     layer6[-4:] = 0
@@ -522,8 +492,7 @@ def create_laminar_phantom() -> np.ndarray:
     vol[56:60] = layer9
 
     layer10 = np.zeros(vol.shape[1:])
-    layer10blks = _extract_blocks(layer10, (4, 4), (12, 12))
-    layer10blks[:] = 1
+    _fill_blocks(layer10, (4, 4), (12, 12))
     layer10[0:8] = 0
     layer10[-8:] = 0
     layer10[:, 0:8] = 0
