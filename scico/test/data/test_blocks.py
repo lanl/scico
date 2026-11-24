@@ -29,9 +29,13 @@ def test_split_list_randomized_preserves_relative_order_and_elements(
     assert parts[1] == sorted(parts[1])
 
 
-def test_split_list_invalid_fractions_raises() -> None:
-    with pytest.raises(ValueError, match="sum to 1.0"):
-        db.split_list([1, 2, 3], [0.2, 0.3])
+def test_split_list_rescales_fractions() -> None:
+    # Fractions that do not sum to 1.0 are rescaled rather than rejected, so
+    # [0.2, 0.3] partitions in the same way as [0.4, 0.6].
+    items = [1, 2, 3, 4, 5]
+    parts = db.split_list(items, [0.2, 0.3], randomize=False)
+    assert parts == [[1, 2], [3, 4, 5]]
+    assert parts == db.split_list(items, [0.4, 0.6], randomize=False)
 
 
 def test_image_size_and_channels() -> None:

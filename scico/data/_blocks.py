@@ -41,7 +41,7 @@ def split_list(
         A list of sublists corresponding to each entry in `fractions`.
     """
     if np.sum(fractions) != 1.0:
-        fractions = (frac / np.sum(frac)).tolist()
+        fractions = (np.asarray(fractions, dtype=float) / np.sum(fractions)).tolist()
 
     indices = list(range(len(items)))
     if randomize:
