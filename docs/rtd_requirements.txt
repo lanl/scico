@@ -1,3 +1,0 @@
-# nbconvert>=7.5 requires a version of pandoc that is not available
-#   in the readthedocs build environment
-nbconvert<7.5
