@@ -24,7 +24,7 @@ from imageio.core.v3_plugin_api import ImageProperties
 T = TypeVar("T")
 
 
-def split_list(
+def split_sequence(
     items: Sequence[T],
     fractions: Sequence[float],
     randomize: bool = True,
@@ -60,7 +60,7 @@ def split_list(
     return partitions
 
 
-def image_size(props: ImageProperties) -> int:
+def image_nbytes(props: ImageProperties) -> int:
     """Compute the uncompressed byte size of an image from its metadata.
 
     Args:
@@ -133,7 +133,7 @@ def extract_blocks(
     return blocks
 
 
-def num_image_blocks(
+def num_blocks_in_image(
     image_shape: Tuple[int, ...],
     block_shape: Tuple[int, ...],
     block_step: Tuple[int, ...],
@@ -183,7 +183,7 @@ def select_image_files(
     return selected_paths
 
 
-def get_image_numblocks(
+def num_blocks_per_image(
     paths: Sequence[str],
     block_shape: Tuple[int, ...],
     block_step: Tuple[int, ...],
@@ -198,17 +198,17 @@ def get_image_numblocks(
     Returns:
         1D `uint32` array containing the block count for each file in `paths`.
     """
-    num_blocks_per_image: npt.NDArray[np.uint32] = np.zeros(len(paths), dtype=np.uint32)
+    counts: npt.NDArray[np.uint32] = np.zeros(len(paths), dtype=np.uint32)
 
     for idx, path in enumerate(paths):
         props = iio.improps(path)
         # Only inspect the first two spatial axes (height, width).
-        num_blocks_per_image[idx] = num_image_blocks(props.shape[0:2], block_shape, block_step)
+        counts[idx] = num_blocks_in_image(props.shape[0:2], block_shape, block_step)
 
-    return num_blocks_per_image
+    return counts
 
 
-def get_image_blocks(
+def sample_image_blocks(
     paths: Sequence[str],
     block_shape: Tuple[int, ...],
     block_step: Tuple[int, ...],
@@ -229,7 +229,7 @@ def get_image_blocks(
     Raises:
         ValueError: If `num_blocks` exceeds the total number of available blocks.
     """
-    blocks_per_image = get_image_numblocks(paths, block_shape, block_step)
+    blocks_per_image = num_blocks_per_image(paths, block_shape, block_step)
     total_blocks = int(blocks_per_image.sum().item())
 
     if num_blocks > total_blocks:

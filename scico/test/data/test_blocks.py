@@ -8,20 +8,20 @@ import pytest
 from scico.data import _blocks as db
 
 
-def test_split_list_deterministic_preserves_order() -> None:
+def test_split_sequence_deterministic_preserves_order() -> None:
     items = ["a", "b", "c", "d", "e", "f"]
-    parts = db.split_list(items, [0.5, 0.5], randomize=False)
+    parts = db.split_sequence(items, [0.5, 0.5], randomize=False)
     assert parts == [["a", "b", "c"], ["d", "e", "f"]]
 
 
-def test_split_list_randomized_preserves_relative_order_and_elements(
+def test_split_sequence_randomized_preserves_relative_order_and_elements(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     items = [10, 20, 30, 40, 50, 60]
     # Force a deterministic shuffle order via monkeypatching random.shuffle.
     monkeypatch.setattr("random.shuffle", lambda seq: seq.reverse())
 
-    parts = db.split_list(items, [1 / 3, 2 / 3], randomize=True)
+    parts = db.split_sequence(items, [1 / 3, 2 / 3], randomize=True)
     flattened = [elem for part in parts for elem in part]
     assert sorted(flattened) == items
     # Each partition's indices are sorted, so elements within a partition remain in original order.
@@ -29,22 +29,22 @@ def test_split_list_randomized_preserves_relative_order_and_elements(
     assert parts[1] == sorted(parts[1])
 
 
-def test_split_list_rescales_fractions() -> None:
+def test_split_sequence_rescales_fractions() -> None:
     # Fractions that do not sum to 1.0 are rescaled rather than rejected, so
     # [0.2, 0.3] partitions in the same way as [0.4, 0.6].
     items = [1, 2, 3, 4, 5]
-    parts = db.split_list(items, [0.2, 0.3], randomize=False)
+    parts = db.split_sequence(items, [0.2, 0.3], randomize=False)
     assert parts == [[1, 2], [3, 4, 5]]
-    assert parts == db.split_list(items, [0.4, 0.6], randomize=False)
+    assert parts == db.split_sequence(items, [0.4, 0.6], randomize=False)
 
 
-def test_image_size_and_channels() -> None:
+def test_image_nbytes_and_channels() -> None:
     props_2d = SimpleNamespace(shape=(16, 32), dtype=np.uint8)
-    assert db.image_size(props_2d) == 16 * 32 * 1
+    assert db.image_nbytes(props_2d) == 16 * 32 * 1
     assert db.image_channels(props_2d) == 1
 
     props_3d = SimpleNamespace(shape=(10, 20, 4), dtype=np.float32)
-    assert db.image_size(props_3d) == 10 * 20 * 4 * 4
+    assert db.image_nbytes(props_3d) == 10 * 20 * 4 * 4
     assert db.image_channels(props_3d) == 4
 
 
@@ -99,12 +99,12 @@ def test_extract_blocks_default_step_on_3d_array() -> None:
     assert np.array_equal(blocks[0, 1, 2], volume[0:2, 1:3, 2:4])
 
 
-def test_num_image_blocks() -> None:
+def test_num_blocks_in_image() -> None:
     # (8 - 4) / 2 + 1 = 3 along each axis -> 3 * 3 = 9 blocks.
-    assert db.num_image_blocks((8, 8), (4, 4), (2, 2)) == 9
+    assert db.num_blocks_in_image((8, 8), (4, 4), (2, 2)) == 9
 
 
-def test_select_image_files_and_get_image_numblocks(tmp_path) -> None:
+def test_select_image_files_and_num_blocks_per_image(tmp_path) -> None:
     img_a = np.zeros((8, 8, 3), dtype=np.uint8)
     img_b = np.ones((8, 8, 3), dtype=np.uint8)
     img_gray = np.zeros((8, 8), dtype=np.uint8)
@@ -120,12 +120,12 @@ def test_select_image_files_and_get_image_numblocks(tmp_path) -> None:
     selected = db.select_image_files(str(tmp_path / "*.png"), num_channels=3, dtype=np.uint8)
     assert selected == [str(path_a), str(path_b)]
 
-    counts = db.get_image_numblocks(selected, block_shape=(4, 4), block_step=(4, 4))
+    counts = db.num_blocks_per_image(selected, block_shape=(4, 4), block_step=(4, 4))
     assert counts.dtype == np.uint32
     assert np.array_equal(counts, np.array([4, 4], dtype=np.uint32))
 
 
-def test_get_image_blocks_samples_requested_count_and_validates_limit(tmp_path) -> None:
+def test_sample_image_blocks_requested_count_and_validates_limit(tmp_path) -> None:
     img_a = np.full((4, 4, 3), 10, dtype=np.uint8)
     img_b = np.full((4, 4, 3), 20, dtype=np.uint8)
 
@@ -136,21 +136,21 @@ def test_get_image_blocks_samples_requested_count_and_validates_limit(tmp_path) 
 
     paths = [str(path_a), str(path_b)]
     # Each 4x4 image with block_shape=(2, 2) and block_step=(2, 2) yields 4 blocks -> 8 total.
-    sampled = db.get_image_blocks(paths, block_shape=(2, 2), block_step=(2, 2), num_blocks=5)
+    sampled = db.sample_image_blocks(paths, block_shape=(2, 2), block_step=(2, 2), num_blocks=5)
     assert sampled.shape == (5, 2, 2, 3)
     assert sampled.dtype == np.uint8
 
     with pytest.raises(ValueError, match="8 available and 9 requested"):
-        db.get_image_blocks(paths, block_shape=(2, 2), block_step=(2, 2), num_blocks=9)
+        db.sample_image_blocks(paths, block_shape=(2, 2), block_step=(2, 2), num_blocks=9)
 
 
-def test_get_image_blocks_zero_requested_returns_empty_array(tmp_path) -> None:
+def test_sample_image_blocks_zero_requested_returns_empty_array(tmp_path) -> None:
     """Test that requesting num_blocks == 0 returns an empty array without error."""
     img = np.zeros((4, 4, 3), dtype=np.uint8)
     path = tmp_path / "single.png"
     iio.imwrite(path, img)
 
-    empty_blocks = db.get_image_blocks(
+    empty_blocks = db.sample_image_blocks(
         [str(path)],
         block_shape=(2, 2),
         block_step=(2, 2),

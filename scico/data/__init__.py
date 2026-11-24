@@ -9,10 +9,10 @@
 
 import sys
 
-from ._blocks import get_image_blocks, select_image_files, split_list
+from ._blocks import sample_image_blocks, select_image_files, split_sequence
 from ._examples import flax_data_path, foam_phantom, kodim23
 
-__all__ = ["kodim23", "foam_phantom", "split_list", "select_image_files", "get_image_blocks"]
+__all__ = ["kodim23", "foam_phantom", "split_sequence", "select_image_files", "sample_image_blocks"]
 
 # Imported items in __all__ appear to originate in top-level functional module
 for name in __all__:
