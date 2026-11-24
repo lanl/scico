@@ -8,7 +8,12 @@ sys.path.append(confpath)
 rootpath = os.path.realpath(os.path.join(confpath, "..", ".."))
 sys.path.append(rootpath)
 
-from docsutil import insert_inheritance_diagram, package_classes, run_conf_files
+from docsutil import (
+    insert_inheritance_diagram,
+    insert_type_params,
+    package_classes,
+    run_conf_files,
+)
 
 # Process settings in files in conf directory
 _vardict = run_conf_files(vardict={"confpath": confpath, "rootpath": rootpath})
@@ -59,6 +64,14 @@ def class_inherit_diagrams(_):
         insert_inheritance_diagram(cls, parts=custom_parts)
 
 
+def jax_type_params(_):
+    # Make PEP 695 type parameters of jax classes included in the scico
+    # namespace resolvable by typing.get_type_hints
+    import jax
+
+    insert_type_params(jax.custom_jvp, jax.custom_vjp)
+
+
 def process_docstring(app, what, name, obj, options, lines):
     # Don't show docs for inherited members in classes in scico.flax.
     # This is primarily useful for silencing warnings due to problems in
@@ -79,4 +92,5 @@ def process_docstring(app, what, name, obj, options, lines):
 
 def setup(app):
     app.connect("builder-inited", class_inherit_diagrams)
+    app.connect("builder-inited", jax_type_params)
     app.connect("autodoc-process-docstring", process_docstring)

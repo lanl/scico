@@ -237,3 +237,48 @@ class TypehintsFormatter:
         if annotation in markup:
             return markup[annotation]
         return None
+
+
+def insert_type_params(*objects):
+    """Insert PEP 695 type parameters into relevant namespaces.
+
+    Classes that are generic via the PEP 695 type parameter syntax
+    (e.g. ``class custom_jvp[ReturnValue]:``) introduce a type parameter
+    that is visible within the implicit scope of the class, but not
+    within the namespace of the module in which the class is defined.
+    When such a module also uses ``from __future__ import annotations``,
+    the (string) annotations of the methods of such a class cannot be
+    resolved by :func:`typing.get_type_hints`, which evaluates them
+    within the global namespace of the function in which they appear,
+    leading to warnings of the form
+
+    ::
+
+       WARNING: Cannot resolve forward reference in type annotations of
+       "scico.custom_jvp.defjvp": name 'ReturnValue' is not defined
+
+    from :mod:`sphinx_autodoc_typehints`. (This is the case for
+    :class:`jax.custom_jvp` and :class:`jax.custom_vjp`, both of which
+    are included in the :mod:`scico` namespace.) The problem is avoided
+    by inserting the type parameters of the relevant classes into the
+    global namespaces within which the annotations of their members are
+    evaluated.
+
+    Args:
+        objects: Classes (or other objects with a ``__type_params__``
+            attribute) for which type parameters should be inserted.
+    """
+    for obj in objects:
+        type_params = getattr(obj, "__type_params__", ())
+        if not type_params:
+            continue
+        # Namespaces within which the annotations of the members of obj
+        # are evaluated.
+        namespaces: list = []
+        for member in vars(obj).values():
+            member_globals = getattr(member, "__globals__", None)
+            if member_globals is not None and not any(member_globals is ns for ns in namespaces):
+                namespaces.append(member_globals)
+        for namespace in namespaces:
+            for type_param in type_params:
+                namespace.setdefault(type_param.__name__, type_param)
