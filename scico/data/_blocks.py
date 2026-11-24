@@ -33,17 +33,15 @@ def split_list(
 
     Args:
         items: Sequence of elements to partition.
-        fractions: Sequence of fractional partition sizes that must sum to 1.0.
-        randomize: If True, shuffle element indices before partitioning.
+        fractions: Sequence of fractional partition sizes. If they do not
+            sum to 1.0, they are rescaled so that they do.
+        randomize: If ``True``, shuffle element indices before partitioning.
 
     Returns:
         A list of sublists corresponding to each entry in `fractions`.
-
-    Raises:
-        ValueError: If `fractions` do not sum to 1.0.
     """
     if np.sum(fractions) != 1.0:
-        raise ValueError("Argument `frac` entries must sum to 1.0.")
+        fractions = (frac / np.sum(frac)).tolist()
 
     indices = list(range(len(items)))
     if randomize:
