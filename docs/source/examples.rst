@@ -30,6 +30,7 @@ Computed Tomography
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_3d_tv_padmm
+   examples/cl_tv_apgm
    examples/ct_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_multi_tv_admm
@@ -151,6 +152,7 @@ Total Variation
    examples/ct_astra_3d_approx_tv_box_apgm
    examples/ct_astra_3d_tv_padmm
    examples/ct_3d_tv_padmm
+   examples/cl_tv_apgm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
@@ -303,6 +305,7 @@ PGM
    :maxdepth: 1
 
    examples/ct_astra_3d_approx_tv_box_apgm
+   examples/cl_tv_apgm
    examples/deconv_ppp_bm3d_apgm
    examples/sparsecode_apgm
    examples/sparsecode_nn_apgm
